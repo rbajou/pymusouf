@@ -1,0 +1,16 @@
+telescope: OM
+label_calib: calib
+label_tomo:  tomo
+###ransac directory: 
+reco_calib: data/OM/3dat/calib/reco/merge/
+reco_tomo: 
+  run: 
+    - data/OM/3dat/tomo/reco/merge/
+###output directories
+out_dir_calib: data/OM/3dat/calib/ana/
+out_dir_tomo: data/OM/3dat/tomo/ana/
+#### efficiency
+eff_dir: simu/outg4/calib/3p/muons/30122022_1723/ana/efficiency
+####Charge calibration with calib golden evts:
+qcal_file: data/OM/Tomo5/ana/charge/gold/fit_dQ_Inlier.csv
+#####Tomo simu path

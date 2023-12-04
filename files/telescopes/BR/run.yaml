@@ -1,0 +1,19 @@
+telescope: BR
+label_calib: Calib10
+label_tomo:  Tomo6_2018_2019
+###ransac directory: 
+reco_calib: data/BR/Calib10/reco/merge
+reco_tomo: 
+  run : 
+    #- data/BR/3dat/tomo/2015/reco/merge
+    #- data/BR/3dat/tomo/2016/reco/merge
+    - data/BR/3dat/tomo/2017/reco/merge 
+    - data/BR/Tomo6/2018_2019/reco/merge
+###output directories
+out_dir_calib: data/BR/Calib10/ana/
+out_dir_tomo: data/BR/3dat/tomo/2017_2018_2019/ana/  #data/BR/3dat/tomo/2017/ana/ #data/BR/3dat/tomo/2017_2018_2019/ana/ #data/BR/Tomo6/2018_2019/ana/ #
+#### efficiency
+#eff_dir: simu/outg4/calib/3p/muons/30122022_1723/ana/efficiency/
+####Charge calibration with calib golden evts:
+#qcal_file: data/BR/Calib10/ana/filter_adc/charge/gold/fit_dQ_Inlier.csv
+

@@ -1,0 +1,14 @@
+.DS_Store
+.venv
+pymusouf.egg-info/
+build/
+*/__pycache__
+*/*/__pycache__
+out/
+.vscode
+files/telescopes/SNJ/raypath/*
+files/telescopes/SB/raypath/*
+files/telescopes/BR/raypath/*
+files/telescopes/OM/raypath/*
+files/dem/soufriere_1m*
+files/voxel
