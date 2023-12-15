@@ -16,9 +16,9 @@ import time
 from scipy.integrate import quad, dblquad, nquad
 from scipy.interpolate import interp2d
 
-####my modules
+#package module(s)
 from telescope import dict_tel
-from tomo.acceptance import GeometricalAcceptance
+from muo2d.old.acceptance import GeometricalAcceptance
 
 
 

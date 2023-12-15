@@ -1,15 +1,11 @@
 telescope: SNJ
 label_calib: CALIB2
 label_tomo:  Tomo2
-###ransac directory: 
-reco_calib: data/SNJ/CALIB2/reco/merge/ #close_inliers/merge_CALIB2/
+###output tracking: 
+reco_calib: data/SNJ/CALIB2/reco/merge/ 
 reco_tomo: 
-  run : 
-    - data/SNJ/Tomo2/reco/merge/ #close_inliers/merge_Tomo2/ 
-###output directories
+  run : #as a list to process several run(s)
+    - data/SNJ/Tomo2/reco/merge/ 
+###output muo2d:
 out_dir_calib: data/SNJ/CALIB2/ana/
 out_dir_tomo: data/SNJ/Tomo2/ana/
-###efficiency: 
-eff_dir: simu/outg4/calib/4p/muons/23102022_1751/ana/efficiency #simu/outg4/ana/calib/4p/muons/eff_scint/eff_0_9/
-####Charge calibration with calib golden evts:
-#qcal_file: data/SNJ/CALIB2/ana/close_inliers/all/charge/gold/fit_dQ_Inlier.csv

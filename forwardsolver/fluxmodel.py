@@ -314,22 +314,39 @@ if __name__=="__main__":
     from pathlib import Path
     import scipy.io as sio
     import time
+    from config import MAIN_PATH
    ####CORSIKA flux
-    corsika_dir =  Path.home() / "cosmic_flux" / "corsika_flux" / "soufriere" / "muons"
+    # corsika_dir =  Path.home() / "cosmic_flux" / "corsika_flux" / "soufriere" / "muons" / "032023"
+    corsika_dir =  MAIN_PATH / "files" / "flux" / "corsika" / "soufriere" / "muons" / "032023"
+    print(corsika_dir)
     if not corsika_dir.exists() : raise ValueError("Check path corsika flux.")
 
-    mat_newfile_corsika = corsika_dir / "032023" / "muonFlux_laSoufriere.mat"
+    mat_newfile_corsika = corsika_dir / "muonFlux_laSoufriere.mat"
     struct_corsika = sio.loadmat(mat_newfile_corsika)
     energy_bins = np.logspace(-0.9500,5.9500, 70)
     theta_bins = np.linspace(2.5,87.5,18)*np.pi/180
     #if model=="corsika_soufriere": vec_theta = theta_bins[np.newaxis].T
-    corsika_flux_mean = struct_corsika['muonFlux']['diffFlux_mean'][0][0]
-    
-    #print(corsika_flux_mean.shape, corsika_flux_mean[0,:], corsika_flux_mean[-2,:], corsika_flux_mean[-1,:])
-    
+    corsika_flux_mean = struct_corsika['muonFlux']['diffFlux_mean'][0][0]    
     corsika_flux_std = struct_corsika['muonFlux']['diffFlux_std'][0][0]
-    ####
+
+    ##Save as pickle binary file .pkl format
+    file = corsika_dir/'diff_flux.pkl'
+    print(MAIN_PATH)
+    import pickle
+    if not file.exists():
         
+        dict_flux = {'mean':corsika_flux_mean, 'std': corsika_flux_std, 'theta_bins' : theta_bins, 'energy_bins' : energy_bins}
+        with open(str(file), 'wb') as f : 
+            pickle.dump(dict_flux, f, pickle.HIGHEST_PROTOCOL)
+        print(f"Save {file}")
+        time.sleep(1)
+
+    # with open(str(file), 'rb') as f : 
+    #     diff_flux = pickle.load(f)
+    # print(f'diff_flux = {diff_flux["mean"]}')
+
+    exit()
+    ####
     
     fm = FluxModel(altitude=0., corsika_flux=corsika_flux_mean, corsika_std=corsika_flux_std, energy_bins=energy_bins, theta_bins=theta_bins)
 

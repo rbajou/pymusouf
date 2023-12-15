@@ -1,0 +1,1 @@
+from .config import MAIN_PATH, FILES_PATH

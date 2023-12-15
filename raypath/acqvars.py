@@ -2,18 +2,11 @@
 #!/usr/bin/env python3
 
 import numpy as np
-import os
 from pathlib import Path
 import scipy.io as sio 
-from scipy.interpolate import griddata, RegularGridInterpolator
-from scipy import optimize 
-import sys
-import time
-from dataclasses import dataclass, field
-from abc import abstractmethod
 
 #personal modules
-from telescope import Telescope, dict_tel
+from telescope import Telescope
     
 class AcqVars : 
     '''

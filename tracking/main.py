@@ -8,7 +8,7 @@ import time
 import logging
 #personal modules
 from telescope import dict_tel,  str2telescope
-from tracking import Data, InputType, Processing
+from tracking import RawData, InputType, Processing
 from utils.tools import str2bool
 
 
@@ -67,9 +67,9 @@ logging.info(sys.argv)
 logging.info(t0)
 logging.info(args.info)
 
-recoData = Data(telescope=tel, input=inData, type=input_type ,label=label, max_nfiles=args.max_nfiles)
-recoData.builddataset()
-process_reco = Processing(data=recoData, outdir=recoDir)
+rawData = RawData(telescope=tel, input=inData, type=input_type ,label=label, max_nfiles=args.max_nfiles)
+rawData.builddataset()
+process_reco = Processing(data=rawData, outdir=recoDir)
 nPM = len(tel.PMTs)
 rt = args.residual_threshold#mm
 ms = args.min_samples

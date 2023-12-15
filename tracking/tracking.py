@@ -38,7 +38,7 @@ class Dataset:
     def dataset(self, dataset):
         pass
 
-class Data:
+class RawData:
     def __init__(self, telescope:Telescope, input:str, type:InputType, label:str, url:str=None, save_path:str=None, max_nfiles:int=None):
         self.telescope = telescope
         self.input = input
@@ -477,7 +477,7 @@ class ReconstructedParticle(Event):
 
     
 class Processing: 
-    def __init__(self, data:Data, outdir:str):
+    def __init__(self, data:RawData, outdir:str):
         self.data   = data
         self.outdir = outdir
         self.input_type = data.type

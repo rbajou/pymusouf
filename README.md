@@ -25,15 +25,19 @@ OUTPUTS:
         - ```inlier.csv.gz``` : inlier and outlier XYZ points coordinates and their associated charge content in X and Y (in ADC)  
 
 ## 2. Reco  
-Once the processing output is here, you can run the ```reco/main.py``` script to get XY maps and DXDY maps with the following arguments:  
+Once the processing output is here, you can run the ```reco/main.py``` script to get panel hit XY maps and DXDY maps with the following arguments:  
 INPUTS:  
-    - ```-tel``` (str2telescope)  
-    - ```-i``` (str) : /path/to/output/tracking/  
-    - ```-o``` (str) : /path/to/output/dir/  
+    - ```--telescope [-tel]``` (str2telescope)  
+    - ```--in_dir [-i]``` (str) : /path/to/output/tracking/  
+    - ```--out_dir [-o]``` (str) : /path/to/output/dir/  
 
 ## 3. Muography (2D)     
-```muo2d/main.py```  
+For a given telescope edit ```files/telescopes/<tel>/run.yaml``` file with reco data paths for calib (open-sky run) and tomo datasets (see step 1.); then run ```muo2d/main.py``` to estimate acceptance, flux, opacity, mean density.
 INPUTS:  
-    - ```--telescope``` (str2telescope)  
+    - ```--telescope [-tel]``` (str2telescope)  
+
+OUTPUTS: 
+    - Acceptance estimate : saved as binary pickle file format ```acceptance.pkl```
+    - Flux, opacity, mean density estimates : saved as binary pickle file format ```flux.pkl```, ```opacity.pkl```, and ```mean_density.pkl```
 
 

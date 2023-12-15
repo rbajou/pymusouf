@@ -34,12 +34,6 @@ params = {'legend.fontsize': 'xx-large',
          
          }
 
-
-# plt.rcParams['mathtext.fontset'] = 'custom'
-# plt.rcParams['mathtext.rm'] = 'Bitstream Vera Sans'
-# plt.rcParams['mathtext.it'] = 'Bitstream Vera Sans:italic'
-# plt.rcParams['mathtext.bf'] = 'Bitstream Vera Sans:bold'
-
 plt.rcParams.update(params)
 
 @dataclass

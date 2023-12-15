@@ -7,7 +7,7 @@ from pathlib import Path
 import argparse
 import pickle
 from scipy.io import loadmat
-#personal modules
+#package module(s)
 from telescope import dict_tel
 from raypath import RayPath,  AcqVars
 

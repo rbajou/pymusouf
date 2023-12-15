@@ -15,17 +15,22 @@ REQUIREMENTS = [
     'pyjson',
     'pylandau',  #used in 'utils/functions.py'
     'iminuit', #used in 'utils/functions.py'
-    'pillow', #for animation
     'pyyaml',
     'palettable', 
     'requests', 
     'bs4', 
     'cx_Freeze', #make executable files
     'mat73', #read v7.3 mat files
+    'pillow', #for animation
 ]
 
-tel_files_path = Path(__file__).parents[0] / 'files' / 'telescopes'
+files_path = Path(__file__).parents[0] / 'files'
+flux_path = files_path / 'flux' / 'corsika' / 'soufriere' / 'muons'
+dem_path = files_path / 'dem'
+tel_files_path = files_path / 'telescopes'
 tel_list = [t.split('/')[-1] for t in  glob.glob(str(tel_files_path) + '/*')]
+files_list = [f'{str(flux_path)}/**', f'{dem_path}/soufriereStructure_2.npy']
+files_list.extend([ f'{str(tel_files_path)}/{tel}/**' for tel in tel_list ])
 
 setup(
     name='pymusouf',
@@ -37,6 +42,7 @@ setup(
     packages=find_packages(), #['muon_tracking'],#
     package_dir={
         'pymusouf': [
+                    'config',
                      'exe', 
                      'files', 
                      'forwardsolver', 
@@ -44,14 +50,16 @@ setup(
                      'muo2d',  
                      'raypath', 
                      'reco',
-                     'scripts', 
+                     'scripts',
+                     'survey',
                      'telescope', 
                      'test', 
+                     'timeserie',
                      'tracking',
                      'utils']
     },  
     package_data={
-          'files': [ f'{str(tel_files_path)}/{tel}/**' for tel in tel_list],
+          'files': files_list,
       },
     include_package_data=False,
     install_requires=REQUIREMENTS,

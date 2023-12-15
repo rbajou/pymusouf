@@ -36,9 +36,9 @@ class RayPath:
                 self.azimuthMatrix, self.zenithMatrix = self.tel.azimuthMatrix[conf], self.tel.zenithMatrix[conf]
                 self.raypath[conf] =  self.compute_apparent_thickness(max_range=max_range)
             with open(pkl_file, 'wb') as f : 
-               pickle.dump(self.raypath, f, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(self.raypath, f, pickle.HIGHEST_PROTOCOL)
         else : 
-            print(f"Load {file.relative_to(Path.cwd())}.pkl ")
+            print(f"Load {file}.pkl ")
             with open(pkl_file, 'rb') as f : 
                 self.raypath = pickle.load(f)
 
@@ -104,16 +104,18 @@ class RayPath:
         zeniths = self.zenithMatrix * 180/np.pi
         elevations = 90 - zeniths
 
-        thickness = np.ones(shape=azimuths.shape)*np.nan
+        shape = azimuths.shape
+        thickness = np.ones(shape)*np.nan
         xyz_in = np.ones(shape=(thickness.shape[0], thickness.shape[1], 3))*np.nan
         xyz_out = np.ones(shape=(thickness.shape[0], thickness.shape[1], 3))*np.nan
         distance = np.ones(shape=thickness.shape)*np.nan
+        profile_topo = np.ones(shape=(shape[0], 2))*np.nan
 
         allZeros_N = int(max_range/10) #  manually adjust for each case
 
         k = 0 
-        for i  in range(len(thickness)) :
-            for j in range(len(thickness)):              
+        for i  in range(shape[0]) :
+            for j in range(shape[1]):              
     
                 x_line = lambda r : tx + r * np.sin(azimuths[i,j]*np.pi/180) * np.cos(elevations[i,j]*np.pi/180) 
                 y_line = lambda r : ty + r * np.cos(azimuths[i,j]*np.pi/180) * np.cos(elevations[i,j]*np.pi/180) 
@@ -218,10 +220,26 @@ class RayPath:
                 thickness[i,j] = travel_len
                 distance[i,j] = d
                 k = k + 1 
+              
+
+        ##Compute 'profile_topo' angular coord
+        for i  in range(shape[0]) :
+            j = 0
+            done = 0
+            while (j < (shape[1]-2))  & (done == 0):
+                j = j+1
+                th1 = thickness[j,i]
+                th2 = thickness[j+1,i]
+                if (np.isnan(th1)) & (~np.isnan(th2)) : 
+                    profile_topo[i, : ] = np.array([azimuths[j,i], 0.5*(zeniths[j,i]+zeniths[j+1, i])])
+                    done = 1
+
+
+
 
         print(f"compute_apparent_thickness() end --- {time.time()-t0:.2f} s" )
 
-        dict_thick = {"distance" : distance, "thickness" : thickness, "xyz_in" : xyz_in, "xyz_out" : xyz_out}
+        dict_thick = {"distance" : distance, "thickness" : thickness, "xyz_in" : xyz_in, "xyz_out" : xyz_out, "profile_topo" : profile_topo}
 
         return  dict_thick
 
@@ -237,7 +255,9 @@ class RayPath:
             thickness = self.thickness, #Provide arrays as keyword arguments to store them under the corresponding name in the output file
             xyz_in =  self.xyz_in,
             xyz_out = self.xyz_out,
+            profile_topo = self.profile_topo
         ) 
+
 
     
 

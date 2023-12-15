@@ -11,7 +11,8 @@ from pathlib import Path
 import argparse
 import json
 import matplotlib.axes 
-#personal modules
+
+#package module(s)
 from utils import tools
 
 
@@ -88,20 +89,23 @@ class PMT:
     type : str = field(default='MAPMT')
 
 @dataclass
-class Configuration:
+class PanelConfig:
     '''
     not used
     '''
     name : str 
     panels : List[Panel] = field(default_factory=list)
 
-class ConfigurationEnum(Enum):
+class TelNameConfig(Enum):
     '''
     not used
     '''
-    ThreePanel1 = Configuration(name="3p1")
-    ThreePanel2 = Configuration(name="3p2")
-    FourPanel = Configuration(name="4p")
+    ThreePanel1 = PanelConfig(name="3p1")
+    ThreePanel2 = PanelConfig(name="3p2")
+    FourPanel = PanelConfig(name="4p")
+
+
+
 
 @dataclass
 class Telescope:
@@ -109,18 +113,25 @@ class Telescope:
     panels : List[Panel]
     PMTs : List[PMT] = field(default_factory=list)
     utm : np.ndarray = field(default_factory=lambda: np.ndarray(shape=(3,))) #coordinates (easting, northing, altitude)
+    altitude : float =  field(default_factory=lambda: float)
     azimuth : float = field(default_factory=float)
     zenith : float = field(default_factory=float)
     elevation : float = field(default_factory=float)
     color : str = field(default_factory=lambda: "black")
     site : str = field(default_factory=lambda: "")
-
+    survey : str = field(default_factory=lambda: "")
 
     def __str__(self):
         matrices = [p.matrix for p in self.panels]
         versions = [m.version for m in matrices]
         v = {f'v{v}': versions.count(v) for v in  set(versions)}
-        return f"Telescope {self.name}: {len(self.panels)} matrices {v}"#type {','.join(set([m.version for m in matrices]))} "
+        sout = f"Telescope: {self.name}\n "
+        sout +=f"- Config: {len(self.panels)} matrices {v}\n "
+        if self.site : sout += f"- Site: {self.site}\n "
+        if np.all(self.utm != None) :  sout += "- UTM: "+ ' '.join([f'{i:.0f}' for i  in self.utm]) + " m\n "
+        if self.azimuth and self.elevation: sout += f"- Orientation (azimuth,elevation): ({self.azimuth}, {self.elevation}) deg\n "
+        return sout
+
     def __post_init__(self):
 
         z_front, z_rear =  self.panels[0].position.z, self.panels[-1].position.z
@@ -134,11 +145,12 @@ class Telescope:
         else: raise ValueError("Unknown panel configuration...")
 
         object.__setattr__(self, 'rays', None)
-        #object.__setattr__(self, 'pixel_xy', {conf: self.get_pixel_xy(pan[0],pan[-1]) for conf, pan in self.configurations.items() })
-    
-    def _get_ray_matrix(self, front_panel:Panel, rear_panel:Panel):
+        #object.__setattr__(self, 'pixel_xy', {conf: self.get_pixel_xy(pan[0],pan[-1]) for conf, pan in self.configurations.items() }
+
+
+    def get_ray_matrix(self, front_panel:Panel, rear_panel:Panel):
         """
-        Ray paths (lines of sight) matrix referenced as (DX,DY) couples
+        Ray paths referenced as (DX,DY) couples
         """
         nbarsXf, nbarsYf  = front_panel.matrix.nbarsX,front_panel.matrix.nbarsY
         nbarsXr, nbarsYr  = rear_panel.matrix.nbarsX,rear_panel.matrix.nbarsY
@@ -151,7 +163,7 @@ class Telescope:
 
     def get_ray_paths(self, front_panel:Panel, rear_panel:Panel, rmax:float=600,): 
         """
-        Compute telescope ray paths or line of sights
+        Compute telescope ray paths (or line of sights)
         """
         front = front_panel
         rear = rear_panel
@@ -343,6 +355,7 @@ panels_BR = [ Panel(ID=panID, matrix=m, position=pos, channelmap=map) for (m, po
 pmt_BR = [ PMT(ID=int(pan.ID), panel=pan, channelmap=pan.channelmap) for pan in panels_BR ]
 tel_BR= Telescope(name = name, panels=panels_BR, PMTs = pmt_BR, color="red")
 tel_BR.utm = np.array([643345.81, 1774030.46,1267])
+tel_BR.altitude = tel_BR.utm[-1]
 tel_BR.azimuth = 297.0#295.
 tel_BR.zenith = 80.0#16.
 tel_BR.elevation = round(90.0-tel_BR.zenith, 1) #16
@@ -360,7 +373,8 @@ panel_id_COP = [0, 1, 2]
 panels_COP = [ Panel(ID=panID, matrix=m, position=pos, channelmap=map) for (m, pos, panID, map) in zip(matrix_COP, pos_COP, panel_id_COP, ChMap_COP ) ]
 pmt_COP =  [ PMT(ID=int(pan.ID), panel=pan, channelmap=pan.channelmap) for pan in panels_COP ]
 tel_COP= Telescope(name = name, panels=panels_COP, PMTs = pmt_COP)
-tel_COP.utm = np.array([310722.14, 5808130.41,2542.98]) 
+tel_COP.utm = np.array([310722.14, 5808130.41, 2543.]) 
+tel_COP.altitude = tel_COP.utm[-1]
 tel_COP.azimuth = 262.0#295
 tel_COP.zenith = 86.0#16
 tel_COP.elevation = round(90.0-tel_COP.zenith,1)#16
@@ -379,6 +393,7 @@ panels_OM = list(Panel(ID=panID, matrix=m, position=pos, channelmap=map) for(m, 
 pmt_OM = [ PMT(ID=int(pan.ID), panel=pan, channelmap=pan.channelmap) for pan in panels_OM ]
 tel_OM= Telescope(name = name, panels=panels_OM, PMTs = pmt_OM, color="orange")
 tel_OM.utm = np.array([642954.802937528, 1774560.94061667, 1344.6 + 1.5])
+tel_OM.altitude = tel_OM.utm[-1]
 tel_OM.azimuth = 192.0
 tel_OM.zenith = 76.1
 tel_OM.elevation = round(90.-tel_OM.zenith,1)
@@ -395,25 +410,12 @@ panel_id_SB = [26, 27, 28]
 panels_SB = list(Panel(ID=panID, matrix=m, position=pos, channelmap=map) for(m, pos, panID, map) in zip(matrix_SB, pos_SB, panel_id_SB, ChMap_SB ) )
 pmt_SB = [ PMT(ID=int(pan.ID), panel=pan, channelmap=pan.channelmap) for pan in panels_SB ]
 tel_SB= Telescope(name = name, panels=panels_SB, PMTs = pmt_SB, color="blue")
-tel_SB.utm = np.array([642611.084416928, 1773797.5200942, 1185])
+tel_SB.utm = np.array([642611.084416928, 1773797.5200942, 1185.])
+tel_SB.altitude = tel_SB.utm[-1]
 tel_SB.azimuth = 40.0#44.9
 tel_SB.zenith = 79.0#75
 tel_SB.elevation = round(90 - tel_SB.zenith ,1)
 tel_SB.site = "South-West"
-
-
-
-
-#####SBR: SuperBaronRouge GW Rocher Fendu 2021-2022 4 matrices = 4 * v1.1
-name = "SBR"
-channelmap = ChannelMap(file=str( tel_path / name / "channel_bar_map" / "mapping.json"))
-npanels_SBR = 4
-matrix_SBR = [matrixv1_1 for _ in range(npanels_SBR)]
-pos_SBR = [ Position(PositionEnum.Front,0), Position(PositionEnum.Middle1, 600), Position(PositionEnum.Middle2, 1200), Position(PositionEnum.Rear, 1800) ]
-panel_id_SBR = [0, 2, 1, 3]
-panels_SBR = [ Panel(matrix=m, ID=panID, position=pos, channelmap=channelmap) for (m, pos, panID) in zip(matrix_SBR, pos_SBR, panel_id_SBR) ]
-pmt_SBR =  [ PMT(ID=6, panel=[panels_SBR[0], panels_SBR[1]], channelmap=channelmap), PMT(ID=7, panel=[panels_SBR[2],panels_SBR[-1]], channelmap=channelmap) ]
-tel_SBR= Telescope(name = name, panels=panels_SBR, PMTs = pmt_SBR, color="red")
 
 
 ####SNJ: SuperNainJaune GW Parking 2019
@@ -425,13 +427,29 @@ pos_SNJ = [ Position(PositionEnum.Front,0), Position(PositionEnum.Middle1, 600),
 panels_SNJ = [ Panel(matrix=m, ID=9+i, position=pos, channelmap=channelmap) for i, (m, pos) in enumerate(zip(matrix_SNJ, pos_SNJ)) ]
 pmt_SNJ =  [ PMT(ID=i+9, panel=pan, channelmap=channelmap) for i, pan in enumerate(panels_SNJ) ]
 tel_SNJ= Telescope(name = name, panels=panels_SNJ, PMTs=pmt_SNJ, color="gold")
-tel_SNJ.utm = np.array([642782.001377887, 1773682.54931093, 1143])
+tel_SNJ.utm = np.array([642782.001377887, 1773682.54931093, 1143.])
+tel_SNJ.altitude = tel_SNJ.utm[-1]
 tel_SNJ.azimuth = 18.0#20.5#20
 tel_SNJ.zenith = 74.9#16
 tel_SNJ.elevation = round(90-tel_SNJ.zenith, 1)
 tel_SNJ.site = "South-West"
 
 dict_tel = { 'SNJ': tel_SNJ, 'BR': tel_BR, 'OM': tel_OM, 'SB': tel_SB } #'SBR': tel_SBR, 'COP : tel_COP
+
+
+
+
+##SBR: SuperBaronRouge GW Rocher Fendu 2021-2022 4 matrices = 4 * v1.1
+# name = "SBR"
+# channelmap = ChannelMap(file=str( tel_path / name / "channel_bar_map" / "mapping.json"))
+# npanels_SBR = 4
+# matrix_SBR = [matrixv1_1 for _ in range(npanels_SBR)]
+# pos_SBR = [ Position(PositionEnum.Front,0), Position(PositionEnum.Middle1, 600), Position(PositionEnum.Middle2, 1200), Position(PositionEnum.Rear, 1800) ]
+# panel_id_SBR = [0, 2, 1, 3]
+# panels_SBR = [ Panel(matrix=m, ID=panID, position=pos, channelmap=channelmap) for (m, pos, panID) in zip(matrix_SBR, pos_SBR, panel_id_SBR) ]
+# pmt_SBR =  [ PMT(ID=6, panel=[panels_SBR[0], panels_SBR[1]], channelmap=channelmap), PMT(ID=7, panel=[panels_SBR[2],panels_SBR[-1]], channelmap=channelmap) ]
+# tel_SBR= Telescope(name = name, panels=panels_SBR, PMTs = pmt_SBR, color="red")
+
 
 
 ##GV: GeantVert GW Matylis 2015-2019  (mapping might be wrong)
