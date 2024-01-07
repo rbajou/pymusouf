@@ -1,0 +1,19 @@
+survey: Soufriere
+
+telescope: SB
+
+run : 
+  calib : 
+      calib_3dat:
+        rawdata :  
+          - ../data/SB/3dat/calib/rawdata
+        recodata : 
+          - ../data/SB/3dat/calib/reco/merge 
+
+  tomo : 
+      tomo_3dat :
+        rawdata :  
+          - ../data/SB/3dat/tomo/rawdata/ 
+        recodata : 
+          - ../data/SB/3dat/tomo/reco/merge 
+      

@@ -24,75 +24,66 @@ import sys
 sys.path.append(str(Path(__file__).parents[1]))  #needed if interactive mode
 #package module(s)
 #from acceptance import Acceptance
-from config import MAIN_PATH
+from config import MAIN_PATH, SURVEY_DIR
 from forwardsolver import FluxModel 
 from filter import *
 from muo2d import Acceptance, TransmittedFluxModel, Muo2D
-from raypath import RayPath
-from reco import RansacData, RecoData, Cut, EvtRate, HitMap, Charge
-from telescope import str2telescope, dict_tel
-from tracking import InputType
-from utils.tools import pretty
+from raypath import RayPathSoufriere
+from reco import RansacData, RecoData, EvtRate, HitMap, Charge
+from telescope import str2telescope
+from survey import CURRENT_SURVEY
 
 #%%
 start_time = time.time()
 print("Start: ", time.strftime("%H:%M:%S", time.localtime()))#start time
 
 ###Load default script arguments stored in .yaml file
-def_args={}
 parser=argparse.ArgumentParser(description='''Estimate acceptance from calib data; flux, opacity and mean density from tomo data.''', epilog="""All is well that ends well.""")
-parser.add_argument('--telescope', '-tel',  required=True, help='Input telescope name (e.g "SNJ"). It provides the associated configuration(s).',  type=str2telescope) #required=True,
+parser.add_argument('--telescope', '-tel',  required=True, help='Input telescope key (e.g "SNJ"). It provides the associated configuration(s).',  type=str2telescope) #required=True,
 args=parser.parse_args()
 tel = args.telescope
 sconfig  = list(tel.configurations.keys())
 nc = len(sconfig)
-####default arguments/paths are written in a yaml config file associated to telescope
-main_path = MAIN_PATH # Path(__file__).parents[1]
-with open( str(main_path / "files" / "telescopes" / tel.name /"run.yaml") ) as fyaml:
-    try:
-        # The FullLoader parameter handles the conversion from YAML
-        # scalar values to Python the dictionary format
-        def_args = yaml.load(fyaml, Loader=yaml.SafeLoader)
-    except yaml.YAMLError as exc:
-        print(exc)
 
-print("Default data paths")
-pretty(def_args)
+survey = CURRENT_SURVEY
 
+home = Path.home()
+main_path = Path(__file__).parents[1]
 out_path = main_path / "out"
 out_path.mkdir(parents=True, exist_ok=True)
 t_start = time.perf_counter()
-home = Path.home()
-tomoRun = def_args["reco_tomo"]["run"]
 
-if isinstance(tomoRun, list): 
-    input_tomo= []
-    freco_tomo, finlier_tomo = [], []
-    for run in tomoRun:
-        input_tomo = home / run
-        freco_tomo.append(glob.glob(str(input_tomo / f"*reco*") )[0] )
-        finlier_tomo.append(glob.glob(str(input_tomo / f"*inlier*") )[0] )
-else: 
-    input_tomo = home / def_args["reco_tomo"]["run"]
-    freco_tomo = glob.glob(str(input_tomo / f"*reco*") )[0] 
-    finlier_tomo = glob.glob(str(input_tomo / f"*inlier*") )[0] 
+run_survey = survey.runs[tel.name]
+run_path = run_survey.run_path
 
-input_calib = home / def_args["reco_calib"]
+run_tomo = run_survey.run_tomo
+run_calib = run_survey.run_calib
 
-input_type = InputType.DATA
+ftrack_tomo, finlier_tomo = [], []
+for run in run_tomo:
+    data_path = run_path['tomo'][run.name] 
+    recopath_tomo = run.check_recopath(data_path)
+    ftrack_tomo.append(glob.glob(str(recopath_tomo / f"*track*") )[0] )
+    finlier_tomo.append(glob.glob(str(recopath_tomo / f"*inlier*") )[0] )
 
-freco_cal = glob.glob(str(input_calib / f"*reco*") )[0] 
-finlier_cal = glob.glob(str(input_calib / f"*inlier*") )[0] 
+
+ftrack_cal, finlier_cal = [], []
+for run in run_calib:
+    data_path = run_path['calib'][run.name] 
+    recopath_cal = run.check_recopath(data_path)
+    ftrack_cal.append(glob.glob(str(recopath_cal / f"*track*") )[0] )
+    finlier_cal.append(glob.glob(str(recopath_cal / f"*inlier*") )[0] )
 
 kwargs_dat = { "index_col": 0, "delimiter": "\t", "nrows": None}
-reco_data_tomo = RecoData(file=freco_tomo, telescope=tel)
+reco_data_tomo = RecoData(file=ftrack_tomo, telescope=tel)
 ransac_data_tomo = RansacData(file=finlier_tomo, telescope=tel, kwargs=kwargs_dat)
-reco_data_cal = RecoData(file=freco_cal, telescope=tel)
+reco_data_cal = RecoData(file=ftrack_cal, telescope=tel)
 ransac_data_cal = RansacData(file=finlier_cal, telescope=tel, kwargs=kwargs_dat)
 
-print(f"Load dataframe(s) -- {(time.time() - start_time):.1f}  s")   
+
+print(f"Load dataframe(s) -- {(time.time() - start_time):.1f} s")   
 #%%
-##Reindexing tomo dataframe (because of evtID doublons)
+##Reindexing tomo dataframe (because of potential evtID doublons)
 df = ransac_data_tomo.df
 old_ix = df.index.to_numpy()
 repeat = np.diff(np.where(np.concatenate(([old_ix[0]], old_ix[:-1] != old_ix[1:], [True])))[0]) #repeat consecutive index
@@ -107,7 +98,7 @@ hm_tomo = HitMap(tel, reco_data_tomo.df)
 hm_cal = HitMap(tel, reco_data_cal.df)
 
 ##Filter(s)
-# print("Filter")
+# print("Filter(s)")
 # fim_tomo = FilterInlierMultipliciy(tel, ransac_data_tomo.df)
 # fim_tomo.apply_cut_front_rear(hm_tomo, 2, 2)    
 
@@ -130,11 +121,19 @@ hm_cal = HitMap(tel, reco_data_cal.df)
 # hm_cal.fill_dxdy(dict_filter=ftof_cal.dict_filter)
 # print(f"After filter: nevts = {len(hm_cal.df_DXDY['3p1'])}")
 
+##When several filters: 
+# dict_list = [filter_time.dict_filter, filter_tof.dict_filter]
+# new_dict_filter = intersect_multiple_filters(dict_list)
+
+
 #%%
 #Flux model
-flux_model_path = main_path / "files"  / "flux" 
-flux_model_tel_path = main_path / "files" / "telescopes" /   tel.name /  "flux"
-cors_path =  flux_model_path / "corsika" / "soufriere" / "muons" / "032023"
+survey_path = CURRENT_SURVEY.path
+print(f"survey_path= {survey_path}")
+flux_model_path = survey_path  / "flux" 
+cors_path =  flux_model_path / "corsika" / "muons" / "032023"
+print(f"cors_path= {cors_path}")
+
 if not cors_path.exists() : raise ValueError("Check path corsika flux.")
 file_diff_flux_model = cors_path / "diff_flux.pkl"
 with open(str(file_diff_flux_model), 'rb') as f: 
@@ -149,8 +148,8 @@ fm = FluxModel(altitude=tel.altitude,
 
 
 ##Acceptance
-flux_model_tel_path = main_path / "files" / "telescopes" /  tel.name /  "flux"
-file_int_flux_sky = flux_model_tel_path / 'integrated_flux_opensky.pkl'
+flux_model_tel_path = survey_path / "telescope" /   tel.name /  "flux"
+file_int_flux_sky = flux_model_tel_path / 'integral_flux_opensky.pkl'
 with open(str(file_int_flux_sky), 'rb') as f: 
     int_flux_opensky = pickle.load(f)
 
@@ -164,16 +163,16 @@ acc.compute()
 # # acc.plot_fig_2d()
 # ax = fig.add_subplot(projection='3d')
 # conf = '3p1'
-# front, rear = tel.configurations[conf][0], tel.configurations[conf][-1]
+# front, rear = tel.configurations[key][0], tel.configurations[key][-1]
 # ray_matrix = tel.get_ray_matrix(front, rear)
 # X, Y = ray_matrix[:,:,0], ray_matrix[:,:,1]
-# Z = acc.estimate[conf]
+# Z = acc.estimate[key]
 # kwargs = {'cmap':'jet'}
 # acc.plot_fig_3d(ax=ax, grid_x=X, grid_y=Y, grid_z=Z, **kwargs)
 # plt.show()
-# figname = out_path / f"acceptance_{conf}.png"
-# plt.savefig(figname)
-# print("Save figure {figname}")
+# figkey = out_path / f"acceptance_{key}.png"
+# plt.savefig(figkey)
+# print("Save figure {figkey}")
 file = out_path / "acceptance.pkl"
 file.parent.mkdir(parents=True, exist_ok=True)
 acc.save(file)
@@ -188,7 +187,7 @@ tlim = [ datetime(2016, 9, 27, hour=00,minute=00,second=00),
 filter_time.get_dict_filter(tlim=tlim)
 
 fig, ax = plt.subplots(figsize=(16,8))
-ftraw = input_tomo / "traw.csv.gz"
+ftraw = recopath_tomo / "traw.csv.gz"
 if ftraw.exists():
     dftraw = pd.read_csv(ftraw, index_col=0, delimiter="\t")
     evtrateTomo_raw = EvtRate(df=dftraw)
@@ -205,12 +204,9 @@ plt.savefig(figfile)
 print(f"Save {figfile}")
 plt.close()
 
-##When multiple filters: 
-# dict_list = [filter_time.dict_filter, filter_tof.dict_filter]
-# new_dict_filter = intersect_multiple_filters(dict_list)
 
 
-old_cors_path = flux_model_path /  'corsika' / 'soufriere' / 'muons' / 'former' 
+old_cors_path = flux_model_path /  'corsika' / 'muons' / 'former' 
 file_int_flux = old_cors_path / 'int_flux_opacity_zenith_grid.pkl'
 with open(str(file_int_flux), 'rb') as f:
     print(f"Load {file_int_flux}")
@@ -224,17 +220,10 @@ model = TransmittedFluxModel(
 )
 
 files_path = main_path / 'files'
-filename = "soufriereStructure_2.npy" #5m resolution 
-structname = filename.split('.')[0] 
-dem_path = files_path / "dem"
-surface_grid = np.load(dem_path/filename)
 
-raypath = RayPath(telescope=tel,
-                    surface_grid=surface_grid,)
-tel_path = files_path / "telescopes"  / tel.name
-fout = tel_path / 'raypath'/ f'az{tel.azimuth:.1f}_elev{tel.elevation:.1f}' / 'raypath'
-raypath(file=fout, max_range=1500)
-thickness = {conf: ray['thickness'] for conf, ray in raypath.raypath.items() }
+raypath = RayPathSoufriere[tel.name]
+
+thickness = {key: ray['thickness'] for key, ray in raypath.raypath.items() }
 muo2d = Muo2D(telescope=tel, 
               hitmap=hm_tomo, 
               acceptance=acc, 
@@ -250,42 +239,42 @@ muo2d.mean_density.save(fout_rho)
 
 ###plot transmitted flux, opacity, mean density maps
 
-for conf, _ in tel.configurations.items():
+for key, _ in tel.configurations.items():
    
-    X, Y = tel.azimuthMatrix[conf]*180/np.pi, tel.zenithMatrix[conf]*180/np.pi
+    X, Y = tel.azimuthMatrix[key]*180/np.pi, tel.zenithMatrix[key]*180/np.pi
     
-    Z = muo2d.flux.estimate[conf]
+    Z = muo2d.flux.estimate[key]
     Z[Z==0] = np.nan
     fig, ax = plt.subplots(figsize=(12,7))
     vmin, vmax = np.nanmin(Z), np.nanmax(Z)
     kwargs_flux = dict(cmap='viridis',  shading='auto', norm=LogNorm(vmin=vmin, vmax=vmax), label = 'Transmitted Flux [cm$^{-2}$.s$^{-1}$.sr$^{-1}$]')
     muo2d.plot_map_2d(fig, ax, grid_x=X, grid_y=Y, grid_z=Z, **kwargs_flux)
-    topo = raypath.raypath[conf]['profile_topo']
+    topo = raypath.raypath[key]['profile_topo']
     ax.plot(topo[:,0], topo[:,1], linewidth=3, color='black')
-    figfile = out_path / f"flux_{conf}.png"
+    figfile = out_path / f"flux_{key}.png"
     plt.savefig(figfile)
     print(f"Save figure {figfile}")
     plt.close()
 
-    Z = muo2d.opacity.estimate[conf]
+    Z = muo2d.opacity.estimate[key]
     Z[Z==0] = np.nan
     fig, ax = plt.subplots(figsize=(12,7))
     vmin, vmax = np.nanmin(Z), np.nanmax(Z)
     kwargs_op = dict(cmap='jet',  shading='auto', norm=LogNorm(vmin=vmin, vmax=vmax), label = 'Opacity $\\varrho$ [mwe]')
     muo2d.plot_map_2d(fig, ax, grid_x=X, grid_y=Y, grid_z=Z, **kwargs_op)
-    figfile = out_path / f"opacity_{conf}.png"
+    figfile = out_path / f"opacity_{key}.png"
     plt.savefig(figfile)
     print(f"Save figure {figfile}")
     plt.close()
 
-    Z = muo2d.mean_density.estimate[conf]
+    Z = muo2d.mean_density.estimate[key]
     Z[Z==0] = np.nan
     cmap = palettable.scientific.sequential.Batlow_20.mpl_colormap
     fig, ax = plt.subplots(figsize=(12,7))
     vmin, vmax = np.nanmin(Z), 3#np.nanmax(Z)
     kwargs_rho = dict(cmap=cmap,  shading='auto', vmin=vmin, vmax=vmax, label = 'Mean Density $\\overline{\\rho}$ [g.cm$^{-3}$]')
     muo2d.plot_map_2d(fig, ax, grid_x=X, grid_y=Y, grid_z=Z, **kwargs_rho)
-    figfile = out_path / f"mean_density_{conf}.png"
+    figfile = out_path / f"mean_density_{key}.png"
     plt.savefig(figfile)
     print(f"Save figure {figfile}")
     plt.close()

@@ -1,0 +1,20 @@
+survey: Soufriere
+
+telescope: OM
+
+run : 
+  calib : 
+      Calib10:
+        rawdata :  
+          - ../data/OM/calib/rawdata
+        recodata : 
+          - ../data/OM/calib/reco/merge 
+
+  tomo : 
+      tomo_3dat :
+        rawdata :  
+          - ../data/OM/3dat/calib/rawdata
+        recodata : 
+          - ../data/OM/3dat/calib/reco/merge/
+      
+    

@@ -512,7 +512,7 @@ if __name__=="__main__":
     #print(f"y = {y}")
     #print(f"sm2 = {sm2}")
     
-    
+  
     
     exit()
     F.compute_opacity_timeseries(

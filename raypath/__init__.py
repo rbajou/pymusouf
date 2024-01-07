@@ -1,2 +1,2 @@
 from .acqvars import AcqVars
-from .raypath import RayPath
+from .raypath import RayPath, RayPathSoufriere

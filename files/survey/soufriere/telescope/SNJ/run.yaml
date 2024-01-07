@@ -1,0 +1,19 @@
+survey: Soufriere
+
+telescope: SNJ
+
+run : 
+  calib : 
+      CALIB2:
+        rawdata :  
+          - ../data/SNJ/CALIB2/rawdata
+        recodata : 
+          - ../data/SNJ/CALIB2/reco/merge 
+
+  tomo : 
+      Tomo2 :
+        rawdata :  
+          - ../data/SNJ/Tomo2/rawdata/ 
+        recodata : 
+          - ../data/SNJ/Tomo2/reco/merge 
+      

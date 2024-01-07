@@ -15,8 +15,9 @@ from typing import Union
 import os
 import pickle
 #personal package(s)
-from telescope import Telescope, dict_tel
+from telescope import Telescope, DICT_TEL
 from raypath import RayPath
+from survey import CURRENT_SURVEY
 
 params = {'legend.fontsize': 'xx-large',
          'axes.labelsize': 'xx-large',
@@ -63,9 +64,10 @@ class DirectProblem:
             with open(pkl_file, 'wb') as f : 
                pickle.dump(self.voxray, f, pickle.HIGHEST_PROTOCOL)
         else : 
-            print(f"Load {file.relative_to(Path.cwd())}.pkl ")
+            print(f"Load {file}.pkl ") #file.relative_to(Path.cwd())
             with open(pkl_file, 'rb') as f : 
                 self.voxray = pickle.load(f)
+               
 
 
 
@@ -205,17 +207,29 @@ class Voxel:
 
     Attributes
     ----------
-    surface_grid : np.ndarray [meter]
+    surface_grid : np.ndarray (X, Y, Z) with shape (3, m, n) [meter]
 
-    surface_center :  np.ndarray [meter]
+    surface_center : np.ndarray (x, y) with shape (2,) [meter]
 
     res_vox : int [meter]
     
     Methods
     -------
-    generateTopography():
+    generateTopography()
     
-    generateMesh():
+    plotTopography()
+
+    generateMesh()
+
+    getVoxels()
+
+    extractVoxels()
+
+    getVoxelDistances()
+
+    getVolumeRegion()
+
+    plot3Dmesh()
     ...
 
     """
@@ -317,16 +331,14 @@ class Voxel:
                         status = 5 # above surface
                     
                     xyz_vox = np.vstack((np.vstack((x_down,y_down,z_down)).T, np.vstack((x_up,y_up,z_up)).T ))
-                    self.barycenter = np.mean(xyz_vox, axis=0)
+                    self.barycenters = np.mean(xyz_vox, axis=0)
                     q = ii*(Ny-1)*(Nz-1) + jj*(Nz-1) + kk
-                    vox_matrix[q,:] = np.concatenate(([status], x_down, x_up, y_down, y_up, z_down, z_up, self.barycenter,[ii, jj, kk]), axis=0)
+                    vox_matrix[q,:] = np.concatenate(([status], x_down, x_up, y_down, y_up, z_down, z_up, self.barycenters,[ii, jj, kk]), axis=0)
         
         status = vox_matrix[:,0]
         sv = (status == 1) | (status == 4)
         self.vox_matrix = vox_matrix[sv,:]
 
-
-    
     
     def getVoxels(self) -> None:
         '''
@@ -368,18 +380,18 @@ class Voxel:
         return voxels
 
 
-    def getVoxDistances(self)-> None:
+    def getVoxelDistances(self)-> None:
         '''
         Matrix featuring distance between each voxel couple (i,j): (d)_i,j
         '''
-        nvoxels = self.barycenter.shape[0]
-        self.voxDistances = np.zeros(shape=(nvoxels,nvoxels))
-        for j in range(nvoxels):
-            for i in range(nvoxels):
-                self.voxDistances[i,j] = np.linalg.norm(self.barycenter[i]-self.barycenter[j]) 
+        nvox = self.barycenters.shape[0]
+        self.vox_distances = np.zeros(shape=(nvox,nvox))
+        for j in range(nvox):
+            for i in range(nvox):
+                self.vox_distances[i,j] = np.linalg.norm(self.barycenters[i]-self.barycenters[j]) 
 
 
-    def getVolumeRegion(self, sv_vox:np.ndarray, side_length:int = 1664)-> np.ndarray:
+    def getVolumeRegion(self, sv_vox:np.ndarray, side_length:int = 1664) -> np.ndarray:
         '''
         '''
         M = self.vox_matrix
@@ -429,52 +441,38 @@ if __name__ == "__main__":
     t0 = time.time()
     print("Start: ", time.strftime("%H:%M:%S", time.localtime()))#start time
 
-    tel = dict_tel['SNJ']
+
+    survey = CURRENT_SURVEY
+    survey_path = survey.path
+
+    res_vox = 64 #m
+    voxel = Voxel(    surface_grid=survey.surface_grid,
+                      surface_center=survey.surface_center, 
+                      res_vox=res_vox)
+    
+    tel = DICT_TEL['SNJ']
     conf='3p1'
     front, rear = tel.configurations[conf][0], tel.configurations[conf][-1]
     
-    files_path = Path(__file__).parents[2] / 'files' 
-    tel_files_path = files_path / 'telescopes'  / tel.name
+    dem_path = survey_path / 'dem'
+    tel_files_path = survey_path / 'telescope'  / tel.name
 
-
-    dem_path = files_path / "dem"
-    filename2 = "soufriereStructure_2.npy" #5m
-
-    surface_grid = np.load(dem_path / filename2)
-    surface_center = np.loadtxt(dem_path / "volcanoCenter.txt").T
-    
-    res_vox = 32 #m
-
-    voxel = Voxel(    surface_grid=surface_grid,
-                      surface_center=surface_center, 
-                      res_vox=res_vox)
-    
-
-    dout_vox_struct = files_path / "voxel"
+    dout_vox_struct = survey_path / "voxel"
     dout_vox_struct.mkdir(parents=True, exist_ok=True)
     fout_vox_struct = dout_vox_struct / f"vox_matrix_res{res_vox}m.npy"
     
-    if fout_vox_struct.exists(): 
-        vox_matrix = np.load(fout_vox_struct)
-        voxel.vox_matrix = vox_matrix
-    else : 
-        voxel.generateMesh()
-        np.save(fout_vox_struct, voxel.vox_matrix)
-        print(f"generateMesh() end --- {time.time() - t0:.3f} s")
-    
- 
-    '''
-    param_dir = Path.home() / "muon_code_v2_0" / "AcquisitionParams"
-    acqVarDir = param_dir / tel.name / "acqVars" / f"az{tel.azimuth}ze{tel.zenith}"
-    acqVars = AcqVars(telescope=tel, 
-                        param_dir=acqVarDir,
-                        mat_files=None,
-                        tomo=True)
-    thck = acqVars.thickness[conf]
-    '''
-    
+    # if fout_vox_struct.exists(): 
+    #     vox_matrix = np.load(fout_vox_struct)
+    #     voxel.vox_matrix = vox_matrix
+    # else : 
+    voxel.generateMesh()
+    np.save(fout_vox_struct, voxel.vox_matrix)
+    print(f"generateMesh() end --- {time.time() - t0:.3f} s")
+
+    print(voxel.vox_matrix.shape)
     raypath = RayPath(telescope=tel,
-                        surface_grid=surface_grid,)
+                        surface_grid=survey.surface_grid,
+                        )
     
 
     dout_ray = tel_files_path / 'raypath'/ f'az{tel.azimuth:.1f}_elev{tel.elevation:.1f}' 
@@ -485,13 +483,11 @@ if __name__ == "__main__":
 
     fout_cmd = dout_ray / "voxel" / f"voxray_{conf}_res{res_vox}m.npy"
     fout_cmd.parents[0].mkdir(parents=True, exist_ok=True)
+   
     dirpb = DirectProblem(telescope=tel, 
                           vox_matrix=voxel.vox_matrix, 
                           res_vox=res_vox)
 
-    dirpb = DirectProblem(telescope=tel, 
-                                    vox_matrix=voxel.vox_matrix, 
-                                    res_vox=res_vox)
     fout_voxray = dout_ray / "voxel" / f"voxray_res{res_vox}m"
     fout_voxray.parent.mkdir(parents=True, exist_ok=True)
     dirpb(file=fout_voxray, raypath=raypath.raypath)
@@ -509,10 +505,11 @@ if __name__ == "__main__":
     color_vox = np.array([[0.98039216, 0.8,  0.98039216, 1.        ]])
     fig = plt.figure(figsize=(12,8))
     ax = fig.add_subplot(111, projection='3d')
-    dx=1000
+    kwargs_mesh = dict(facecolor = color_vox)
+    voxel.plot3Dmesh(ax=ax, vox_xyz=voxel.vox_xyz, **kwargs_mesh)
     kwargs_topo = dict ( alpha=0.2, color='lightgrey', edgecolor='grey' )
-    voxel.plot3Dmesh(ax=ax, color_vox=color_vox)
     voxel.plotTopography(ax, **kwargs_topo)
+    dx=1000
     xrange = [surface_center[0]-dx, surface_center[0]+dx]
     yrange = [surface_center[1]-dx, surface_center[1]+dx]
     zrange = [1.0494e+03, 1.4658e+03 + 50]

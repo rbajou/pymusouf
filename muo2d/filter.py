@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore")
 from typing import Union
 from datetime import datetime, timezone
 #package module(s)
-from telescope import dict_tel, Telescope
+from telescope import DICT_TEL, Telescope
 from reco import RecoData, RansacData, HitMap
 
 
@@ -38,7 +38,7 @@ class Filter:
     def __init__(self, telescope:Telescope, df:pd.DataFrame):
         self.tel = telescope
         self.df = df.copy()
-        self.dict_filter = {conf : [] for conf, _ in self.tel.configurations.items()}
+        self.dict_filter = {name : [] for name, _ in self.tel.configurations.items()}
         self.label = None
 
 
@@ -75,10 +75,10 @@ class FilterInlierMultipliciy(Filter):
 
     def get_dict_filter(self, hitmap:HitMap, cut_front:int, cut_rear:int):
 
-        for conf, panels in self.tel.configurations.items():
-            
+        for name, conf in self.tel.configurations.items():
+            panels = conf.panels
             front, rear = panels[0], panels[-1]
-            idx_conf = hitmap.idx[conf]
+            idx_conf = hitmap.idx[name]
             
             df_front = self.dict_df_multi[front.ID].loc[idx_conf]  #index 'evtID'
             df_rear  = self.dict_df_multi[rear.ID].loc[idx_conf]  #index 'evtID'
@@ -87,8 +87,8 @@ class FilterInlierMultipliciy(Filter):
             idx_rear   = df_rear [df_rear < cut_rear].index #
             idx_front_rear = list(set(idx_rear).intersection(set(idx_front)))
             
-            self.dict_filter[conf].extend(idx_front_rear)
-            self.dict_filter[conf] = list(set(self.dict_filter[conf]))
+            self.dict_filter[name].extend(idx_front_rear)
+            self.dict_filter[name] = list(set(self.dict_filter[name]))
         
 
 
@@ -132,9 +132,9 @@ class FilterToF(Filter):
         if self.tof_peak is None: self.get_tof()
         mask = (self.tof_peak-dtof  < self.df_tof_ns ) & (self.df_tof_ns < self.tof_peak+dtof ) 
         self.idx = self.df_tof_ns[mask].index.get_level_values(0)
-        for conf, _ in self.tel.configurations.items():
-            self.dict_filter[conf].extend(self.idx)
-            self.dict_filter[conf] = list(set(self.dict_filter[conf]))
+        for name, _ in self.tel.configurations.items():
+            self.dict_filter[name].extend(self.idx)
+            self.dict_filter[name] = list(set(self.dict_filter[name]))
        
 
 class FilterTimePeriod(Filter):
@@ -157,9 +157,9 @@ class FilterTimePeriod(Filter):
             tmin, tmax = tmin.replace(tzinfo=timezone.utc).timestamp(), tmax.replace(tzinfo=timezone.utc).timestamp()
         mask =  ( tmin < self.ts ) & ( self.ts < tmax )
         self.idx = self.df[mask].index#.get_level_values(0)
-        for conf, _ in self.tel.configurations.items():
-            self.dict_filter[conf].extend(self.idx)
-            self.dict_filter[conf] = list(set(self.dict_filter[conf]))
+        for name, _ in self.tel.configurations.items():
+            self.dict_filter[name].extend(self.idx)
+            self.dict_filter[name] = list(set(self.dict_filter[name]))
 
 # class MultipleFilter:
 
@@ -185,7 +185,7 @@ def intersect_multiple_filters(dict_list):
 
 if __name__=='__main__':
     
-    tel = dict_tel['SB']
+    tel = DICT_TEL['SB']
     reco_file = str(Path.home() / "data/SB/3dat/tomo/reco/merge/reco.csv.gz")
     reco_data = RecoData(reco_file, tel)
     ransac_file = str(Path.home() / "data/SB/3dat/tomo/reco/merge/inlier.csv.gz")

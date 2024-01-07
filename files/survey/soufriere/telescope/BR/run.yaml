@@ -1,0 +1,26 @@
+survey: Soufriere
+
+telescope: BR
+
+run : 
+  calib : 
+      Calib10:
+        rawdata :  
+          - ../data/BR/Calib10/rawdata
+        recodata : 
+          - ../data/BR/Calib10/reco/merge 
+
+  tomo : 
+      tomo_2017 :
+        rawdata :  
+          - ../data/BR/3dat/tomo/2017/rawdata/ 
+        recodata : 
+          - ../data/BR/3dat/tomo/2017/reco/merge 
+      
+      tomo_2018_2019 :
+        rawdata :  
+          - ../data/BR/3dat/tomo/2018/rawdata/ 
+          - ../data/BR/3dat/tomo/2019/rawdata/ 
+        recodata : 
+          - 
+

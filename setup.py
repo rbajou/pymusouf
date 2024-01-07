@@ -5,6 +5,8 @@ from setuptools import setup, find_packages
 import glob
 from pathlib import Path
 
+
+
 REQUIREMENTS = [
     'pandas',
     'numpy',
@@ -24,13 +26,22 @@ REQUIREMENTS = [
     'pillow', #for animation
 ]
 
-files_path = Path(__file__).parents[0] / 'files'
-flux_path = files_path / 'flux' / 'corsika' / 'soufriere' / 'muons'
-dem_path = files_path / 'dem'
-tel_files_path = files_path / 'telescopes'
-tel_list = [t.split('/')[-1] for t in  glob.glob(str(tel_files_path) + '/*')]
-files_list = [f'{str(flux_path)}/**', f'{dem_path}/soufriereStructure_2.npy']
-files_list.extend([ f'{str(tel_files_path)}/{tel}/**' for tel in tel_list ])
+try : 
+    survey_dir = Path(__file__).parent / 'files' / 'survey'
+    list_avail_survey = [name.split('/')[-1] for name in glob.glob(str(survey_dir) + "/*")]
+    files_list=[]
+    for survey in list_avail_survey:  
+        survey_path = survey_dir / survey
+        tel_files_path = survey_path / 'telescope'
+        tel_list = [t.split('/')[-1] for t in  glob.glob(str(tel_files_path) + '/*')]
+        files_list.extend([ f'{str(tel_files_path)}/{tel}/**' for tel in tel_list ])
+        if survey == "soufriere" : 
+            flux_path = survey_path /  'flux' / 'corsika' / 'muons'
+            dem_path = survey_path / 'dem'
+            files_list.extend([ f'{str(flux_path)}/**', f'{dem_path}/soufriereStructure_2.npy', f'{dem_path}/volcanoCenter.txt' ])
+except :
+    raise FileExistsError("Files list was not properly set.")
+
 
 setup(
     name='pymusouf',
@@ -42,7 +53,7 @@ setup(
     packages=find_packages(), #['muon_tracking'],#
     package_dir={
         'pymusouf': [
-                    'config',
+                     'config',
                      'exe', 
                      'files', 
                      'forwardsolver', 
@@ -56,14 +67,14 @@ setup(
                      'test', 
                      'timeserie',
                      'tracking',
-                     'utils']
+                     'utils'
+                     ]
     },  
     package_data={
           'files': files_list,
       },
-    include_package_data=False,
+    include_package_data=True,
     install_requires=REQUIREMENTS,
-    zip_safe=False,
     keywords='Muography Soufrière',
     classifiers=[
         'Programming Language :: Python :: 3.7',

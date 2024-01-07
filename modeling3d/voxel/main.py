@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.colors import Normalize, to_rgba
 #personal modules
+from config import MAIN_PATH
 from raypath import RayPath
-from telescope import dict_tel
+from survey import CURRENT_SURVEY
+from telescope import DICT_TEL
 from voxel import Voxel, DirectProblem
 from utils import rotanimate
 
@@ -20,15 +22,15 @@ if __name__ == "__main__":
     t0 = time.time()
     print("Start: ", time.strftime("%H:%M:%S", time.localtime()))#start time
    
-    main_path =  Path(__file__).parents[2]
-    files_path = main_path/ "files"
-    dem_path = files_path / "dem"
+    main_path =  MAIN_PATH #Path(__file__).parents[2]
+    survey_path = CURRENT_SURVEY.path
+    dem_path = survey_path / "dem"
     filename2 = "soufriereStructure_2.npy" #res 5m
     surface_grid = np.load(dem_path / filename2)
     surface_center = np.loadtxt(dem_path / "volcanoCenter.txt").T
     
     parser=argparse.ArgumentParser(
-    description='''La Soufrière dome voxelization and computation of kernel matrices (inverse problem solving) for a given telescope list''', epilog="""All is well that ends well.""")
+    description='''La Soufrière dome voxelization and computation of voxel - telescope ray matrices for inverse problem solving.''', epilog="""All is well that ends well.""")
     parser.add_argument('--res_vox', '-rv', default=64, help='Voxel resolution in meter',  type=int)
     parser.add_argument('--max_range', '-mr', default=1500, help='Maximal distance range to seek for ray path-surface interceptions', type=int)
     #parser.add_argument('--out_dir', '-o', default=str(main_path/"out"), help='/path/to/output/dir/',  type=str)
@@ -40,7 +42,7 @@ if __name__ == "__main__":
                       surface_center=surface_center, 
                       res_vox=res_vox)
     
-    dout_vox_struct = files_path / "voxel"
+    dout_vox_struct = survey_path / "voxel"
     dout_vox_struct.mkdir(parents=True, exist_ok=True)
     fout_vox_struct = dout_vox_struct / f"voxMatrix_res{res_vox}m.npy"
     if fout_vox_struct.exists(): 
@@ -52,15 +54,16 @@ if __name__ == "__main__":
         voxel.generateMesh()
         vox_matrix = voxel.vox_matrix
         np.save(fout_vox_struct, vox_matrix)
-        print(f"generateMesh() end --- {time.time() - t0:.1f} s")
+    print(f"generateMesh() end --- {time.time() - t0:.1f} s")
 
     voxel.getVoxels()
 
-    lname = ['SB', 'SNJ', 'BR', 'OM']
-    ltel = [dict_tel[n] for n in lname]
+    ltel_name = list(CURRENT_SURVEY.telescopes.keys())
 
-    for tel in ltel:
-        tel_files_path = files_path / "telescopes"  / tel.name
+    for tel_name in ltel_name:
+        if tel_name != 'SNJ': continue
+        tel = DICT_TEL[tel_name]
+        tel_files_path = survey_path / "telescope"  / tel.name
         dout_ray = tel_files_path / "raypath" / f"az{tel.azimuth:.1f}_elev{tel.elevation:.1f}" 
         rp = RayPath(telescope=tel,
                         surface_grid=surface_grid,)

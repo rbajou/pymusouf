@@ -1,6 +1,6 @@
 To install the package, make sure you have Python v3.7 or higher installed.  
-  
-First, create a virtual environment, running: 
+
+In the current package directory, first create a virtual environment, running: 
     $python3 -m venv .venv     #N.B ‘.venv’ generic hidden directory name
 
 Activate the virtual environment:  
@@ -11,3 +11,6 @@ Then, to install the package with its requirements do:
 
 Later, to exit the virtual environment, simply do:  
     $deactivate  
+
+For each source package modification, rerun: 
+    $python3 -m pip install .  

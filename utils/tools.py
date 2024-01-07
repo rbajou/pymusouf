@@ -17,6 +17,29 @@ import argparse
 import json
 
 
+def print_progress(iteration, total, prefix='', suffix='', decimals=1, bar_length=100):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        bar_length  - Optional  : character length of bar (Int)
+    """
+    str_format = "{0:." + str(decimals) + "f}"
+    percents = str_format.format(100 * (iteration / float(total)))
+    filled_length = int(round(bar_length * iteration / float(total)))
+    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+
+    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
+
+    if iteration == total:
+        sys.stdout.write('\n')
+    sys.stdout.flush()
+    
+
 def my_import(name):
     components = name.split('.')
     mod = __import__(components[0])
@@ -125,9 +148,8 @@ def var_wt(x, sigma_i, thresh=1e-6, iter_max=200): #thresh=1e-6
     sigma_i[sigma_i == 0] =  len(x) #no measurement error
     tol = np.sum(abs(x))*10**-16
     sigma_i[sigma_i <= 0] = np.min( np.concatenate(([tol], sigma_i[sigma_i > 0])) ) / 2
-    #
-    # Initialize.
-    #
+    
+    # Initialize
     v = np.std(x)**2
     n = len(x)
     S = np.mean(sigma_i**2) # Avoids recomputing this constant within the loop
@@ -140,8 +162,8 @@ def var_wt(x, sigma_i, thresh=1e-6, iter_max=200): #thresh=1e-6
         if ((v <= v_0 * (1+thresh)) & (v_0 <= v * (1+thresh))) : break
         v = v_0
         w = 1/np.sum(1/(sigma_i**2+np.sqrt(v)**2))*(1/(sigma_i**2+np.sqrt(v)**2))
-    #if i >= iter_max: print("Maximum iteration count exceeded.")
-    return {'Variance':v, 'Mean':m, 'Iterations':i, 'Weights':w}
+
+    return {'variance':v, 'mean':m, 'iterations':i, 'weights':w}
 
 
 def pretty(d, indent=0):

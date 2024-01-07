@@ -8,9 +8,9 @@ The data processed by this package were acquired in the framework of the ANR DIA
 To process raw telescope data and reconstruct particle track event-by-event, the user needs to run ```python3 tracking/main.py``` with the following arguments:    
 INPUTS:  
     - ```--telescope [-tel]``` (str2telescope) the telescope name (required): Check the available telescope configurations in  dictionary ```dict_tel``` in ```telescope/telescope.py```.  
-    - ```--input_dat [-i]``` (str or List[str] or ```.txt``` file) :  /path/to/datafile/  One can input a data directory, a single .datf file, or a list of data files e.g ```--input_data <file1.dat> <file2.dat>```.  
+    - ```--input_dat [-i]``` (str or List[str]) :  /path/to/datafile/  One can input a data directory, one or several .dat file e.g ```--input_data <file1.dat> <file2.dat>```.  
     - ```--out_dir [-o]``` (str) : /path/to/outdir/ where the output directory will be created.  
-    - (optional)```--input_type [-it]``` (str, ```DATA``` or ```MC```) either real data or monte-carlo data  
+    - (optional)```--input_type [-it]``` (str, ```real``` or ```mc```) either real data or monte-carlo data  
     - (optional) ```--max_nfiles [-max]```  (int, default is ```1```) the maximum number of data files to process.  
     - (optional) ```--is_ransac```  (bool, default is ```True```)  
     RANSAC parameters:  
@@ -21,8 +21,8 @@ INPUTS:
 
 OUTPUTS:  
     Two dataframes with event id index:    
-        - ```reco.csv.gz``` : RANSAC output (intersection points XY coordinates between fitted trajectories and each telescope panel) for each filtered track.  
-        - ```inlier.csv.gz``` : inlier and outlier XYZ points coordinates and their associated charge content in X and Y (in ADC)  
+        - ```df_track.csv.gz``` : Tracking output (intersection points XY coordinates between fitted trajectories and each telescope panel) for each filtered track.  
+        - ```df_inlier.csv.gz``` : Ransac inlier and outlier XYZ points coordinates and their associated charge content (in ADC)  
 
 ## 2. Reco  
 Once the processing output is here, you can run the ```reco/main.py``` script to get panel hit XY maps and DXDY maps with the following arguments:  
@@ -32,12 +32,12 @@ INPUTS:
     - ```--out_dir [-o]``` (str) : /path/to/output/dir/  
 
 ## 3. Muography (2D)     
-For a given telescope edit ```files/telescopes/<tel>/run.yaml``` file with reco data paths for calib (open-sky run) and tomo datasets (see step 1.); then run ```muo2d/main.py``` to estimate acceptance, flux, opacity, mean density.
+For a given telescope edit ```files/telescopes/<tel>/run.yaml``` file with track reco data paths for calib (open-sky run) and tomo datasets (see step 1.); then run ```muo2d/main.py``` to estimate acceptance, flux, opacity, mean density.
 INPUTS:  
     - ```--telescope [-tel]``` (str2telescope)  
 
 OUTPUTS: 
-    - Acceptance estimate : saved as binary pickle file format ```acceptance.pkl```
-    - Flux, opacity, mean density estimates : saved as binary pickle file format ```flux.pkl```, ```opacity.pkl```, and ```mean_density.pkl```
+    - Acceptance estimate : 2-d NumPy array(s) saved as binary pickle file format ```acceptance.pkl```
+    - Flux, opacity, mean density estimates : 2-d NumPy array(s) saved as binary pickle file format ```flux.pkl```, ```opacity.pkl```, and ```mean_density.pkl```
 
 

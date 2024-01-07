@@ -15,7 +15,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pickle
 #package module(s)
 from reco import HitMap, RecoData, RansacData
-from telescope import Telescope, dict_tel
+from telescope import Telescope, DICT_TEL
 
 
 
@@ -37,7 +37,7 @@ plt.rcParams.update(params)
 if __name__=="__main__":
 
 
-    tel = dict_tel['SNJ']
+    tel = DICT_TEL['SNJ']
     data_path = Path.home()/f"data/{tel.name}/CALIB2/reco/merge"
     reco_file = str( data_path / "reco.csv.gz")
     reco_data = RecoData(reco_file, tel)

@@ -1,106 +1,111 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 import sys
 import os
 from pathlib import Path
 import argparse
 import time
 import logging
+import pandas as pd
+
 #personal modules
-from telescope import dict_tel,  str2telescope
-from tracking import RawData, InputType, Processing
-from utils.tools import str2bool
+from survey import CURRENT_SURVEY
+from survey.data import RawData
+from survey.run import Run
+from telescope import DICT_TEL,  str2telescope
+from tracking import RansacModel, RansacTracking
+from utils.tools import str2bool, print_progress
 
 
-_start_time = time.time()
+start_time = time.time()
 t0 = time.strftime("%H:%M:%S", time.localtime())
 print("Start: ", t0)#start time
 t_start = time.perf_counter()
 home_path = os.environ["HOME"]
 parser=argparse.ArgumentParser(
 description='''For a given muon telescope configuration, this script allows to perform RANSAC tracking and outputs trajectrory-panel crossing XY coordinates''', epilog="""All is well that ends well.""")
-parser.add_argument('--telescope', '-tel', default=dict_tel["SNJ"], help='Input telescope name. It provides the associated configuration.', type=str2telescope)
+parser.add_argument('--telescope', '-tel', default=DICT_TEL["SNJ"], help='Input telescope name. It provides the associated configuration.', type=str2telescope)
 parser.add_argument('--input_data', '-i', default=[], nargs="*", help='/path/to/datafile/  One can input a data directory, a single datfile, or a list of data files e.g "--input_data <file1.dat> <file2.dat>"', type=str)
+# parser.add_argument('--input_data', '-i', default=None, help='/path/to/datafile/  One can input a data directory, a single datfile, or a list of data files e.g "--input_data <file1.dat> <file2.dat>"', type=str)
 parser.add_argument('--out_dir', '-o', default='out', help='Path to processing output', type=str) 
-parser.add_argument('--input_type', '-it', default='DATA',  help="'DATA' or 'MC'", type=str)
-parser.add_argument('--label', '-l', default='', help='Label of the dataset', type=str)
+parser.add_argument('--input_type', '-it', default='real',  help="'real' or 'mc'", type=str)
 parser.add_argument('--max_nfiles', '-max', default=1, help='Maximum number of dataset files to process.', type=int)
 parser.add_argument('--residual_threshold', '-rt', default=50, help='RANSAC "distance-to-model" parameter: "residual_threshold" in mm.',type=float)
 parser.add_argument('--min_samples', '-ms', default=2, help='RANSAC size of the initial sample: "min_samples".',type=int)
 parser.add_argument('--max_trials', '-mt', default=100, help='RANSAC number of iterations: "max_trials".',type=int)
 parser.add_argument('--fit_intersect', '-intersect', default=False, help='if true record line model intersection points on panel; else record closest XY points to model',type=str2bool)
 parser.add_argument('--info', '-info', default=None, help='Additional info',type=str)
+parser.add_argument('--progress_bar', '-bar', default=False, help='Display progress bar',type=str2bool)
 args=parser.parse_args()
-tel = args.telescope
-print(f"telescope : {tel}")
-inData = args.input_data
-if len(args.input_data)==1 : 
-    inData = f'{args.input_data[0]}'    
-    ####In case we input a txt file containing rawdata file paths
-    if Path(inData).is_file() & inData.endswith(".txt"): 
-        print("Input is .txt file")
-        listfiles = []
-        with open(inData, "r") as f: 
-            for line in f.readlines():
-                l = line.split("\n")[0]
-                listfiles.append(l)
-        inData=listfiles
 
-if args.input_type == 'DATA': input_type=InputType.DATA
-elif args.input_type == 'MC': input_type=InputType.MC
-else: raise argparse.ArgumentTypeError("--input_type should be 'DATA' or 'MC'.")
+survey = CURRENT_SURVEY[args.telescope.name]
 
-label = args.label
-print(f"Input data : {inData}")
-outDir = Path(args.out_dir)
-outDir.mkdir(parents=True, exist_ok=True)
-print("PROCESSING...")
-_start_time = time.time()
-recoDir = outDir / "out"
-recoDir.mkdir(parents=True, exist_ok=True)
+out_dir = Path(args.out_dir)
+out_dir.mkdir(parents=True, exist_ok=True)
 
+start_time = time.time()
+reco_dir = out_dir 
+reco_dir.mkdir(parents=True, exist_ok=True)
 
 strdate = time.strftime("%d%m%Y_%H%M")
-flog =str(outDir/f'{strdate}.log')
-logging.basicConfig(filename=flog, level=logging.INFO, filemode='w')
+flog =str(out_dir/f'{strdate}.log')
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s [%(levelname)s] %(message)s",
+                    filemode='w',
+                    #filename=flog,)
+                    stream=sys.stdout,) #either set 'filename' to save info in log file or 'stream' to print out on console
 logging.info(sys.argv)
-logging.info(t0)
-logging.info(args.info)
+logging.info(f"Start -- {t0}")
+if args.info : logging.info(args.info) #additional info
 
-rawData = RawData(telescope=tel, input=inData, type=input_type ,label=label, max_nfiles=args.max_nfiles)
-rawData.builddataset()
-process_reco = Processing(data=rawData, outdir=recoDir)
-nPM = len(tel.PMTs)
-rt = args.residual_threshold#mm
-ms = args.min_samples
-N  = args.max_trials
-is_fit_intersect = args.fit_intersect
-s= f"is_fit_intersect={is_fit_intersect}"
-logging.info(s)
+kwargs_ransac = dict(residual_threshold=args.residual_threshold, 
+            min_samples=args.min_samples, 
+            max_trials=args.max_trials,  
+) 
+            #is_fit_intersect=args.fit_intersect)
 
-s = f'RANSAC(residual_threshold={rt}mm, min_samples={ms}, max_trials={N})'
-print(s)
-logging.info(s)
-if input_type==InputType.MC:
-    max_outliers = None
-    logging.info(f"max_outliers={max_outliers}")
-    eff=1.
-    logging.info(f"scint_eff={eff}")
-    process_reco.ransac_reco_pmt(residual_threshold=rt, min_samples=ms, max_trials=N, scint_eff=eff, max_outliers=max_outliers, is_fit_intersect=is_fit_intersect)
-elif input_type==InputType.DATA: 
-    max_outliers=None #dict={"3p":4, "4p":4}
-    logging.info(f"max_outliers={max_outliers}")
-    langau=None
-    logging.info(f"langau={langau}")
-    process_reco.ransac_reco_pmt(residual_threshold=rt, min_samples=ms, max_trials=N, langau=langau, max_outliers=max_outliers, is_fit_intersect=is_fit_intersect)
-else: raise ValueError
-#######
-######
-process_reco.to_csv() ##save reco 
-print(f"Output directory : {str(recoDir)}")
-t_sec = round(time.time() - _start_time)
+logging.info('\nRansac Tracking...\n')
+rawdata_path = [ Path(p) for p in args.input_data ]
+
+runs = []
+if len(rawdata_path) == 0 : 
+    runs = survey.run_tomo
+else : 
+    for praw in rawdata_path: 
+        raw = RawData(path=praw)
+        run = Run(name = praw, telescope = args.telescope, rawdata = [raw])
+        runs.append(run)
+
+n, nruns = 0, len(runs)
+for run in runs:
+    logging.info(run)
+    for raw in run.rawdata:
+        # print(raw)
+        raw.fill_dataset(max_nfiles = args.max_nfiles)
+
+        tracking = RansacTracking(telescope = args.telescope, data = raw )
+        tracking.process(model_type = RansacModel, progress_bar = args.progress_bar, **kwargs_ransac)
+        
+        logging.info(tracking)
+
+        print(f"df_track.head = {tracking.df_track.head}")
+        ftrack = out_dir / 'df_track.csv.gz'
+        tracking.df_track.to_csv(ftrack, compression='gzip', index=False, sep='\t')
+        logging.info(f"Save dataframe {ftrack}")
+
+        logging.info(f"df_model.head = {tracking.df_model.head}")
+        fmodel = out_dir / 'df_inlier.csv.gz' #ransac inlier pt-tagging output for all reco events
+        tracking.df_model.to_csv(fmodel, compression='gzip', index=False, sep='\t')
+        logging.info(f"Save dataframe {fmodel}")
+
+    print_progress(n+1, nruns, prefix = 'Run(s) processed :', suffix = 'completed')
+    n += 1
+
+t_sec = round(time.time() - start_time)
 (t_min, t_sec) = divmod(t_sec,60)
 (t_hour,t_min) = divmod(t_min,60)
-t_end = 'Runtime processing : {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec)
-print(t_end)
+t_end = 'Duration : {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec)
 logging.info(t_end)
+
+logging.info(f"Output directory : {reco_dir}")

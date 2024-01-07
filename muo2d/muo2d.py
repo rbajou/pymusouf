@@ -21,6 +21,18 @@ import pickle
 from reco import HitMap, EvtRate
 from telescope import Telescope
 
+params = {'legend.fontsize': 'xx-large',
+         'axes.labelsize': 'xx-large',
+         'axes.titlesize':'xx-large',
+         'xtick.labelsize':'xx-large',
+         'ytick.labelsize':'xx-large',
+         'axes.labelpad':10,
+         'mathtext.fontset': 'stix',
+         'font.family': 'STIXGeneral',
+         }
+plt.rcParams.update(params)
+
+
 @dataclass
 class Estimate:
 
@@ -151,9 +163,12 @@ class Flux(Estimate):
     def __init__(self):
         Estimate.__init__(self)
 
-    def compute(self, hitmap:HitMap, acceptance:Acceptance, time:float, efficiency:Efficiency=None) -> None: 
+    def compute(self, hitmap:HitMap, acceptance:Acceptance, time:float, efficiency:Efficiency=None, **args) -> None: 
         
         for (conf, hm) in hitmap.h_DXDY.items():
+            if 'mask' in args.keys(): 
+                m = args['mask'][conf]
+                hm[m] = np.nan 
             unc_hm = np.sqrt(hm)
             acc, unc_acc = acceptance.estimate[conf], acceptance.unc_stat[conf]
             if efficiency is None : 
@@ -231,17 +246,18 @@ class MeanDensity(Estimate):
 class Muo2D:
     
     
-    def __init__(self, telescope:Telescope, hitmap:HitMap, acceptance:Acceptance, evtrate:EvtRate, model:TransmittedFluxModel, thickness:dict, *args, **kwargs):
+    def __init__(self, telescope:Telescope, hitmap:HitMap, acceptance:Acceptance, evtrate:EvtRate, model:TransmittedFluxModel, thickness:dict, **args):
         
         self.tel = telescope
         self.hitmap = hitmap
         self.acceptance = acceptance
 
         self.flux = Flux()
-        time = evtrate.run_duration
+        _time = evtrate.run_duration
         self.flux.compute( hitmap=hitmap, 
                           acceptance=acceptance, 
-                          time=time)
+                          time=_time,
+                          **args)
 
         self.opacity = Opacity()
         mask = {conf: np.isnan(thick) for conf, thick in thickness.items()}

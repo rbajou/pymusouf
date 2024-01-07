@@ -64,7 +64,7 @@ if __name__ == "__main__":
         pickle_file = files_path/ 'telescopes'/ tel.name/'raypath'/f'az{tel.azimuth}_elev{tel.elevation}'/'raypath'
         print(pickle_file.exists())
         raypath( pickle_file , maxRange=1500) 
-        thick = raypath.raypath[conf]['thickness'].flatten()
+        thick = raypath.raypath[name]['thickness'].flatten()
         arg_col =  [np.argmin(abs(range_thick-v))for v in thick]   
         color_values = color_scale_thick[arg_col] 
         print(color_values)

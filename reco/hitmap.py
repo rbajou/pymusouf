@@ -38,42 +38,43 @@ class HitMap:
         self.rangeXY = { pan.position.loc : [  [ 0, int(pan.matrix.nbarsX) * float(pan.matrix.scintillator.width) ], [0, int(pan.matrix.nbarsY) * float(pan.matrix.scintillator.width)]] for pan in self.panels }
         
         #(DX,DY) maps : hits per telescope pixel (=line-of-sight) r_(DX,DY) 
-        self.rayMatrix = { conf :  self.tel.get_ray_matrix(front_panel=panels[0], rear_panel=panels[-1]) for conf,panels in self.tel.configurations.items()}
-        self.binsDXDY  = { conf : [m.shape[0], m.shape[1]] for conf, m in self.rayMatrix.items()}
-        self.width = {conf: panels[0].matrix.scintillator.width for conf, panels in self.tel.configurations.items()}
-        self.rangeDXDY = { conf : np.array([ [ np.min(los[:,:,0])*self.width[conf], np.max(los[:,:,0])*self.width[conf] ], [np.min(los[:,:,1])*self.width[conf], np.max(los[:,:,1])*self.width[conf] ]])  for conf,los in self.rayMatrix.items()}
+        self.rayMatrix = { name :  self.tel.get_ray_matrix(front_panel=conf.panels[0], rear_panel=conf.panels[-1]) for name, conf in self.tel.configurations.items()}
+        self.binsDXDY  = { name : [m.shape[0], m.shape[1]] for name, m in self.rayMatrix.items()}
+        self.width = {name: conf.panels[0].matrix.scintillator.width for name, conf in self.tel.configurations.items()}
+        self.rangeDXDY = { name : np.array([ [ np.min(rays[:,:,0])*self.width[name], np.max(rays[:,:,0])*self.width[name] ], [np.min(rays[:,:,1])*self.width[name], np.max(rays[:,:,1])*self.width[name] ]])  for name,rays in self.rayMatrix.items()}
 
         self.fill_dxdy()
     
         
     def fill_dxdy(self, dict_filter:dict=None):
 
-        self.h_DXDY  = { conf : None for conf in self.sconfig}
-        self.df_DXDY = { conf : None for conf in self.sconfig}
+        self.h_DXDY  = { name : None for name in self.sconfig}
+        self.df_DXDY = { name : None for name in self.sconfig}
         
         for pan in self.panels : 
             #raw hit panel maps
             key = pan.position.loc
             xpos, ypos = f"X_{key}", f"Y_{key}"
-            ((Xmin, Xmax), (Ymin, Ymax)) = self.rangeXY[key]
-            sel =  ( (Xmin< self.df[xpos]) & (self.df[xpos]<Xmax) &  (Ymin< self.df[ypos]) & (self.df[ypos]<Ymax) )
+            ((xmin, xmax), (ymin, ymax)) = self.rangeXY[key]
+            sel =  ( (xmin< self.df[xpos]) & (self.df[xpos]<xmax) &  (ymin< self.df[ypos]) & (self.df[ypos]<ymax) )
             self.XY[key] = [self.df[sel][xpos].values, self.df[sel][ypos].values]
 
-        for conf, panels in self.tel.configurations.items():
+        for name, conf in self.tel.configurations.items():
             #hit tel config maps
+            panels = conf.panels
             front, rear = panels[0].position.loc, panels[-1].position.loc
-            ((Xminf, Xmaxf), (Yminf, Ymaxf)) = self.rangeXY[front]
-            ((Xminr, Xmaxr), (Yminr, Ymaxr)) = self.rangeXY[rear]
+            ((xminf, xmaxf), (yminf, ymaxf)) = self.rangeXY[front]
+            ((xminr, xmaxr), (yminr, ymaxr)) = self.rangeXY[rear]
             xposf, yposf = f"X_{front}", f"Y_{front}"
             xposr, yposr = f"X_{rear}", f"Y_{rear}"
-            sfront =  ( (Xminf< self.df[xposf]) & (self.df[xposf]<Xmaxf) &  (Yminf< self.df[yposf]) & (self.df[yposf]<Ymaxf) )
-            srear = ( (Xminr < self.df[xposr]) & (self.df[xposr]<Xmaxr) &  (Yminr< self.df[yposr]) & (self.df[yposr]<Ymaxr) )
+            sfront =  ( (xminf< self.df[xposf]) & (self.df[xposf]<xmaxf) &  (yminf< self.df[yposf]) & (self.df[yposf]<ymaxf) )
+            srear = ( (xminr < self.df[xposr]) & (self.df[xposr]<xmaxr) &  (yminr< self.df[yposr]) & (self.df[yposr]<ymaxr) )
             sel = (sfront & srear)
 
             ###apply filter on evt ids
             idx = None
             if dict_filter: 
-                filter = dict_filter[conf]
+                filter = dict_filter[name]
                 idx  = self.df[sel].loc[filter].index
                 #idx  = df[df.index.isin(filter)][sel].index
             else : 
@@ -82,9 +83,9 @@ class HitMap:
             dftmp = self.df.loc[idx] 
             ts, tns = dftmp['timestamp_s'].values, dftmp['timestamp_ns'].values
             DX, DY =  dftmp[xposf].values - dftmp[xposr].values, dftmp[yposf].values - dftmp[yposr].values
-            dfconf = pd.DataFrame(index=idx, data=np.array([ts, tns, DX, DY]).T, columns=['timestamp_s', 'timestamp_ns', f'DX_{conf}', f'DY_{conf}'])
-            self.df_DXDY[conf] = dfconf
-            self.h_DXDY[conf] = np.histogram2d(DX, DY, bins=self.binsDXDY[conf], range=self.rangeDXDY[conf] )[0]
+            dfconf = pd.DataFrame(index=idx, data=np.array([ts, tns, DX, DY]).T, columns=['timestamp_s', 'timestamp_ns', f'DX_{name}', f'DY_{name}'])
+            self.df_DXDY[name] = dfconf
+            self.h_DXDY[name] = np.histogram2d(DX, DY, bins=self.binsDXDY[name], range=self.rangeDXDY[name] )[0]
        
 
     def plot_xy_map(self, invert_yaxis:bool=False, transpose:bool=False):
@@ -122,15 +123,15 @@ class HitMap:
         """
         nconfigs = len(self.sconfig)
         fig, fax = plt.subplots(figsize=(8, 12), nrows=nconfigs, ncols=1, sharex=True)
-        for i, conf in enumerate(self.sconfig):
+        for i, name in enumerate(self.sconfig):
             if nconfigs > 1 : ax = fax[i]
             else: ax=fax
             ax.set_aspect('equal')#, adjustable='box')
             ax.set_ylabel('$\\Delta$X [mm]')#, fontsize=16)
             ax.set_xlabel('$\\Delta$Y [mm]')#, fontsize=16)
-            DX_min, DX_max = self.rangeDXDY[conf][0]
-            DY_min, DY_max = self.rangeDXDY[conf][1]
-            h = self.hDXDY[conf]
+            DX_min, DX_max = self.rangeDXDY[name][0]
+            DY_min, DY_max = self.rangeDXDY[name][1]
+            h = self.hDXDY[name]
             if transpose: h = h.T
             if fliplr : h = np.fliplr(h)
             if flipud : h = np.flipud(h)

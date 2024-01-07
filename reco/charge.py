@@ -10,7 +10,7 @@ import pylandau
 
 #package module(s)
 from telescope import Telescope, Panel
-from tracking import InputType
+from survey.data import DataType
 from utils import functions
 
 params = {'legend.fontsize': 'large',
@@ -28,7 +28,7 @@ plt.rcParams.update(params)
 
 class Charge:
     
-    def __init__(self, df:pd.DataFrame, telescope:Telescope, input_type:InputType):
+    def __init__(self, df:pd.DataFrame, telescope:Telescope, input_type:DataType):
     
         self.df = df
         self.panels = telescope.panels
@@ -38,9 +38,9 @@ class Charge:
         self.fill_charge_arrays()
 
         self.input_type = input_type
-        if self.input_type == InputType.DATA: 
+        if self.input_type == DataType.real: 
             self.lpar_fit = ['MPV', 'eta', 'sigma', 'A']##parameters landauxgaussian distribution
-        elif self.input_type == InputType.MC: 
+        elif self.input_type == DataType.mc: 
             self.lpar_fit = ['MPV', 'eta', 'A'] ##parameters landau distribution
         else : raise ValueError()
 
@@ -85,7 +85,7 @@ class Charge:
         mpv, eta, amp = int(rough_max), sigma, np.max(entries)
         print(mpv, eta, sigma, amp)
     
-        if self.input_type == InputType.MC : 
+        if self.input_type == DataType.mc : 
             values, pcov = curve_fit(pylandau.landau, xfit, yfit,
                 sigma=yerr,
                 absolute_sigma=False,
@@ -152,7 +152,7 @@ class Charge:
             label+='{}={:0.1f}$\\pm${:0.1f}\n'.format(par, val, err)
         xmin, xmax = serie['xmin']['value'], serie['xmax']['value']
         if x is None: x = np.linspace(xmin, xmax, 100)
-        if InputType.MC == "MC" : 
+        if self.input_type == DataType.mc : 
             y = pylandau.landau(x, *values)
         else:
             y = pylandau.langau(x, *values)

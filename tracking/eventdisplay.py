@@ -13,9 +13,9 @@ import glob
 import argparse
 from random import sample, choice
 #personal modules
+from tracking import Event
+from reco import RecoData, RansacData
 from telescope import Telescope, str2telescope
-from .tracking import InputType, Event
-from reco import EventType, RecoData
 
 
 class RawEvtDisplay:
@@ -135,7 +135,7 @@ class RawEvtDisplay:
         plt.close()
         
 class RecoEvtDisplay:
-    def __init__(self, telescope:Telescope, recodir:str="", label:str="", outdir:str=os.environ['HOME'], input_type=InputType.DATA, kwargs:dict=None):
+    def __init__(self, telescope:Telescope, recodir:str="", label:str="", outdir:str=os.environ['HOME'], kwargs:dict=None):
         self.telescope = telescope
         self.recodir = recodir
         self.label = label
@@ -146,13 +146,10 @@ class RecoEvtDisplay:
         except: raise ValueError
         reco_trk  = RecoData(file=f_reco, 
                             telescope=self.telescope, 
-                            input_type=input_type, 
                             kwargs=kwargs)
-        inlier_data = RecoData(file=f_inlier, 
+        inlier_data = RansacData(file=f_inlier, 
                                 telescope=self.telescope, 
-                                input_type=input_type,
-                                kwargs=kwargs,
-                                is_all=True)
+                                kwargs=kwargs)
       
 #        self.df = self.df[self.df.index.isin(self.index)]
         self.df_reco = reco_trk.df
@@ -356,12 +353,10 @@ if __name__ == '__main__':
     print(f'outdir: {out_dir}')
     
     recofileTomo = glob.glob(str(reco_dir/"*reco*"))[0]
-    input_type = InputType.DATA
-    evttype = EventType.MAIN
     
     recofile=RecoData(file=recofileTomo, 
-                       telescope=tel,  
-                         input_type=input_type, ) 
+                       telescope=tel,  )
+
     df = recofile.df
     N= args.nevts 
     evtID_good= sample(list(df.index), N) 
