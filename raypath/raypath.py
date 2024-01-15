@@ -11,7 +11,7 @@ import os
 import pickle
 #personal modules
 from config import MAIN_PATH
-from survey import CURRENT_SURVEY
+from survey import DICT_SURVEY
 from telescope import Telescope
 
 class RayPath:
@@ -261,20 +261,38 @@ class RayPath:
         ) 
 
 
-survey_path = CURRENT_SURVEY.path
-filename = "soufriereStructure_2.npy" #5m resolution 
-dem_path = survey_path / "dem"
-main_tel_path = survey_path / "telescope" 
-surface_grid = np.load(dem_path/filename)
-
 RayPathSoufriere = { }
-for _, run in CURRENT_SURVEY.runs.items(): 
+survey = DICT_SURVEY['soufriere']
+dem_filename = "soufriereStructure_2.npy" #5m resolution 
+dem_path = survey.path / "dem"
+main_tel_path = survey.path / "telescope" 
+surface_grid = np.load(dem_path / dem_filename)
+
+for _, run in survey.runs.items(): 
+
     tel = run.telescope
     tel_path = main_tel_path / tel.name
     raypath= RayPath(telescope=tel, surface_grid=surface_grid)
     fout = tel_path / 'raypath'/ f'az{tel.azimuth:.1f}_elev{tel.elevation:.1f}' / 'raypath'
     raypath(file=fout, max_range=1500)
     RayPathSoufriere[tel.name] = raypath
+
+
+RayPathCopahue = { }
+survey = DICT_SURVEY['copahue']
+dem_filename = "copahueStructure.npy" #5m resolution 
+dem_path = survey.path / "dem"
+main_tel_path = survey.path / "telescope" 
+surface_grid = np.load(dem_path / dem_filename)
+
+for _, run in survey.runs.items(): 
+
+    tel = run.telescope
+    tel_path = main_tel_path / tel.name
+    raypath= RayPath(telescope=tel, surface_grid=surface_grid)
+    fout = tel_path / 'raypath'/ f'az{tel.azimuth:.1f}_elev{tel.elevation:.1f}' / 'raypath'
+    raypath(file=fout, max_range=1500)
+    RayPathCopahue[tel.name] = raypath
 
 if __name__ == "__main__":
    pass

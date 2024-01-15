@@ -1,0 +1,21 @@
+survey: Copahue
+
+telescope: COP
+
+run : 
+  calib : 
+      calib:
+        rawdata :  
+          - ../data/COP/calib/rawdata/
+        recodata : 
+          - ../data/COP/calib/reco/ 
+
+  tomo : 
+      TOMO3_M2 :
+        rawdata :  
+          - ../data/COP/subset/raw/
+        recodata : 
+          - ../data/COP/subset/reco/
+      
+
+

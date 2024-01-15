@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 import glob
 from pathlib import Path
-
+import sys
 
 
 REQUIREMENTS = [
@@ -19,11 +19,11 @@ REQUIREMENTS = [
     'iminuit', #used in 'utils/functions.py'
     'pyyaml',
     'palettable', 
-    'requests', 
-    'bs4', 
-    'cx_Freeze', #make executable files
+    # 'requests', 
+    # 'bs4', 
+    # 'cx_Freeze', #make executable files
     'mat73', #read v7.3 mat files
-    'pillow', #for animation
+    'pillow', #for .gif animation
 ]
 
 try : 
@@ -35,10 +35,16 @@ try :
         tel_files_path = survey_path / 'telescope'
         tel_list = [t.split('/')[-1] for t in  glob.glob(str(tel_files_path) + '/*')]
         files_list.extend([ f'{str(tel_files_path)}/{tel}/**' for tel in tel_list ])
-        if survey == "soufriere" : 
-            flux_path = survey_path /  'flux' / 'corsika' / 'muons'
-            dem_path = survey_path / 'dem'
-            files_list.extend([ f'{str(flux_path)}/**', f'{dem_path}/soufriereStructure_2.npy', f'{dem_path}/volcanoCenter.txt' ])
+        # if survey == "soufriere" : 
+        #     flux_path = survey_path /  'flux' / 'corsika' / 'muons'
+        #     dem_path = survey_path / 'dem'
+        #     files_list.extend([ f'{str(flux_path)}/**', f'{dem_path}/soufriereStructure_2.npy', f'{dem_path}/volcanoCenter.txt' ])
+        # elif survey == "copahue":
+        flux_path = survey_path /  'flux' / 'corsika' / 'muons'
+        dem_path = survey_path / 'dem'
+        files_list.extend([ f'{str(flux_path)}/**', f'{dem_path}/*Structure*', f'{dem_path}/*Center*' ])
+        # else : 
+        #     print(f"No dem file found for survey : {survey}")
 except :
     raise FileExistsError("Files list was not properly set.")
 
@@ -75,9 +81,10 @@ setup(
       },
     include_package_data=True,
     install_requires=REQUIREMENTS,
-    keywords='Muography Soufrière',
+    keywords='Muography x Scintillator',
     classifiers=[
         'Programming Language :: Python :: 3.7',
     ]
 )
+
 

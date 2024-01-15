@@ -15,7 +15,7 @@ from typing import Union
 import os
 import pickle
 #personal package(s)
-from telescope import Telescope, DICT_TEL
+from telescope import Telescope, DICT_TEL, str2telescope
 from raypath import RayPath
 from survey import CURRENT_SURVEY
 
@@ -52,15 +52,16 @@ class DirectProblem:
         file.parents[0].mkdir(parents=True, exist_ok=True)
         pkl_file = str(file)+'.pkl'
         if not os.path.exists(pkl_file): 
-            for conf,_ in self.tel.configurations.items():
+            for key, conf in self.tel.configurations.items():
                 t0 = time.time()
-                front_panel, rear_panel = self.tel.configurations[conf][0], self.tel.configurations[conf][-1]
+                panels = conf.panels
+                front_panel, rear_panel = panels[0], panels[-1]
                 self.tl = abs(front_panel.position.z  - rear_panel.position.z) * 1e-3 #mm->m
-                self.tazM, self.tzeM = self.tel.azimuthMatrix[conf], self.tel.zenithMatrix[conf]
-                print(f"Compute voxel ray matrix for {self.tel.name} ({conf})...")
-                thick_mat = raypath[conf]['thickness']
-                self.voxray[conf] = self.build(thickness=thick_mat)
-                print(f"DirectProblem.build({self.tel.name}[{conf}]) end --- {time.time() - t0:.3f} s")
+                self.tazM, self.tzeM = self.tel.azimuthMatrix[key], self.tel.zenithMatrix[key]
+                print(f"Compute voxel ray matrix for {self.tel.name} ({key})...")
+                thick_mat = raypath[key]['thickness']
+                self.voxray[key] = self.build(thickness=thick_mat)
+                print(f"DirectProblem.build({self.tel.name}[{key}]) end --- {time.time() - t0:.3f} s")
             with open(pkl_file, 'wb') as f : 
                pickle.dump(self.voxray, f, pickle.HIGHEST_PROTOCOL)
         else : 
@@ -125,9 +126,9 @@ class DirectProblem:
         txIntersection, tyIntersection, tzIntersection, tIntersection, distancesFromTelescope = self.computexyzIntersections(xb, yb, zb)
         print("Compute voxels apparent thickness along each telescope ray path...\n")
         apparentThicknessMatrix = thickness
-        Nvox = self.vox_matrix.shape[0]
+        nvox = self.vox_matrix.shape[0]
         ndx, ndy = self.tazM.shape
-        voxrayMatrix = np.zeros(shape=(ndx*ndy,Nvox))*np.nan
+        voxrayMatrix = np.zeros(shape=(ndx*ndy,nvox))*np.nan
 
         MNorm = np.zeros(shape=(ndx, ndy))
         nbarsx, nbarsy = self.tel.panels[0].matrix.nbarsX, self.tel.panels[0].matrix.nbarsY
@@ -144,7 +145,7 @@ class DirectProblem:
                 if (apparentThicknessRay > 0) & (~np.isnan(apparentThicknessRay)) & (np.isfinite(apparentThicknessRay)) & (apparentThicknessRay < 1000) & (za <= 90):
                     #print(self.tzeM[ii,:]*180/np.pi)
                     # print('\t\t\t\t this axis is valid \n')
-                    tomographyKernel = np.zeros(shape=(Nvox,))
+                    tomographyKernel = np.zeros(shape=(nvox,))
                     # edit this axis acceptance pattern with the geometrical acceptance (Sullivan 1970, Thomas 1971)
                     dx = lambda x: (x-DX)*wx*1e-1
                     dy = lambda y: (y-DY)*wy*1e-1
@@ -250,14 +251,14 @@ class Voxel:
                     X, Y, Z (np.ndarray): coordinate grid matrices
         '''
 
-        X, Y = np.meshgrid(np.arange(-side_length/2,side_length/2+res, res), np.arange(-side_length/2,side_length/2+res, res))                                          
+        X, Y = np.meshgrid(np.arange(-side_length/2, side_length/2+res, res), np.arange(-side_length/2,side_length/2+res, res))                                          
         X, Y = X + self.sc[0], Y + self.sc[1]
         points, values = np.array([self.SX.flatten(), self.SY.flatten()]).T, self.SZ.flatten()
         Z = griddata(points, values, (X,Y), method='linear' )
         return X, Y, Z
     
 
-    def plotTopography(self, ax:Axes, mask:np.ndarray=None, res:int=64, side_length:int = 1664,  **kwargs) -> None:
+    def plotTopography(self, ax:Axes, mask:np.ndarray=None, res:int=64, side_length:int=1664,  **kwargs) -> None:
         '''
         Returns the ...
 
@@ -274,7 +275,7 @@ class Voxel:
         ax.plot_surface(SX,SY,SZ,**kwargs)
 
 
-    def generateMesh(self, side_length:int = 832) -> None:
+    def generateMesh(self, side_length:int = 1664) -> None:
         '''
         Adapted from Marina Rosas-Carbajal's MatLab function
 
@@ -452,7 +453,7 @@ if __name__ == "__main__":
     
     tel = DICT_TEL['SNJ']
     conf='3p1'
-    front, rear = tel.configurations[conf][0], tel.configurations[conf][-1]
+    front, rear = tel.configurations[conf].panels[0], tel.configurations[conf].panels[-1]
     
     dem_path = survey_path / 'dem'
     tel_files_path = survey_path / 'telescope'  / tel.name
@@ -492,9 +493,10 @@ if __name__ == "__main__":
     fout_voxray.parent.mkdir(parents=True, exist_ok=True)
     dirpb(file=fout_voxray, raypath=raypath.raypath)
     voxrayMatrix = dirpb.voxray[conf]
+    print(f"voxrayMatrix.shape = {voxrayMatrix.shape}")
    
     ###PLOTS
-    '''
+
     import palettable
     import matplotlib.colors as cm
     cmap_rho = palettable.scientific.sequential.Batlow_20.mpl_colormap 
@@ -505,13 +507,14 @@ if __name__ == "__main__":
     color_vox = np.array([[0.98039216, 0.8,  0.98039216, 1.        ]])
     fig = plt.figure(figsize=(12,8))
     ax = fig.add_subplot(111, projection='3d')
-    kwargs_mesh = dict(facecolor = color_vox)
+    kwargs_mesh = dict(facecolor = color_vox, edgecolor = "grey", alpha = 0.3)
+    voxel.getVoxels()
     voxel.plot3Dmesh(ax=ax, vox_xyz=voxel.vox_xyz, **kwargs_mesh)
-    kwargs_topo = dict ( alpha=0.2, color='lightgrey', edgecolor='grey' )
+    kwargs_topo = dict (color = 'lightgrey', edgecolor = 'grey', alpha = 0.2)
     voxel.plotTopography(ax, **kwargs_topo)
     dx=1000
-    xrange = [surface_center[0]-dx, surface_center[0]+dx]
-    yrange = [surface_center[1]-dx, surface_center[1]+dx]
+    xrange = [survey.surface_center[0]-dx, survey.surface_center[0]+dx]
+    yrange = [survey.surface_center[1]-dx, survey.surface_center[1]+dx]
     zrange = [1.0494e+03, 1.4658e+03 + 50]
     ax.set_xlim(xrange)
     ax.set_ylim(yrange)
@@ -528,21 +531,21 @@ if __name__ == "__main__":
     ax.set_ylabel("Y [m]")
     ltel_n = ["SB", "SNJ", "BR", "OM"]
     str_tel =  "_".join(ltel_n)
-    ltel_coord = np.array([ str2telescope(tel).utm for tel in ltel_n])
-    ltel_color = np.array([ str2telescope(tel).color for tel in ltel_n])
+    ltel_coord = np.array([ str2telescope(name).utm for name in ltel_n])
+    ltel_color = np.array([ str2telescope(name).color for name in ltel_n])
     ax.scatter(ltel_coord[:,0], ltel_coord[:,1], ltel_coord[:,-1], c=ltel_color, s=30,marker='s',)
     mask = np.isnan(thickness).flatten()
     tel.plot_ray_paths(ax=ax, front_panel=front, rear_panel=rear, mask=mask, rmax=1500,  color='grey', linewidth=0.3 )#
     plt.show()
-    '''
+
 
     ###Compute volume
-    '''
-    voxrayMatrix[np.isnan(voxrayMatrix)] = 0
-    mvox = np.any(voxrayMatrix>0, axis=0)
-    sv_vox = np.where(mvox==True)[0]
-    vol = voxel.getVolumeRegion(sv_vox=sv_vox)
-    print(f"Volume covered by {tel.name} ({conf}) : {vol:.5e} m^3")
-    '''
 
-    print(f"End --- ({time.time() - t0:.3f} s)")
+    # voxrayMatrix[np.isnan(voxrayMatrix)] = 0
+    # mvox = np.any(voxrayMatrix>0, axis=0)
+    # sv_vox = np.where(mvox==True)[0]
+    # vol = voxel.getVolumeRegion(sv_vox=sv_vox)
+    # print(f"Volume covered by {tel.name} ({conf}) : {vol:.5e} m^3")
+
+
+    print(f"End --- {time.time() - t0:.3f} s")

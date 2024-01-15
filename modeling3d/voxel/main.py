@@ -25,9 +25,8 @@ if __name__ == "__main__":
     main_path =  MAIN_PATH #Path(__file__).parents[2]
     survey_path = CURRENT_SURVEY.path
     dem_path = survey_path / "dem"
-    filename2 = "soufriereStructure_2.npy" #res 5m
-    surface_grid = np.load(dem_path / filename2)
-    surface_center = np.loadtxt(dem_path / "volcanoCenter.txt").T
+    surface_grid = CURRENT_SURVEY.surface_grid
+    surface_center = CURRENT_SURVEY.surface_center
     
     parser=argparse.ArgumentParser(
     description='''La Soufrière dome voxelization and computation of voxel - telescope ray matrices for inverse problem solving.''', epilog="""All is well that ends well.""")

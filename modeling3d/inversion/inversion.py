@@ -89,7 +89,7 @@ class Inversion:
             rmin = d_tel[np.argmin(d_tel)]
             self.mat_scaling[i] = 1/rmin**1.5
 
-    def get_model_expectation(self, rho0:np.ndarray):#, err_prior, d, l):
+    def get_model_post(self, rho0:np.ndarray):#, err_prior, d, l):
         '''
         rho0 : initial guess (shape=(nvox,))
         '''
@@ -102,6 +102,7 @@ class Inversion:
         self.C_rho_post_inv =  np.linalg.inv(self.C_rho_post)
         self.rho_post = rho0 + self.C_rho_post_inv @ G.T @ self.C_d_inv @ ( self.data - G @ rho0) 
     
+
     def smoothing(self, err_prior:float, distance:np.ndarray, length:float,  damping:np.ndarray = None):
         """
         err_prior: a priori error on density [g/cm^3]
@@ -110,7 +111,7 @@ class Inversion:
         """
         nvox = self.voxray_matrix.shape[1]
         print(f"nvox = {nvox}")
-
+        
         for i in range(nvox):
             for j in range(nvox):
                 self.C_smooth[i,j] = err_prior**2 * np.exp(-distance[i,j]/length)
@@ -174,6 +175,7 @@ if __name__ == "__main__":
         voxel.generateMesh()
         vox_matrix = voxel.vox_matrix
         np.save(fout_vox_struct, vox_matrix)
+
     print(f"generateMesh() end --- {time.time() - t0:.1f} s")
 
     print(vox_matrix.shape)
@@ -241,6 +243,7 @@ if __name__ == "__main__":
     mat_nvox_nnan = ~np.all(np.isnan(G), axis=1) # (nray,)
     # print(np.all(np.isnan(G), axis=1))
     mask =  (mat_nvox_nz != 0 ) & mat_nvox_nnan
+  
     #data_obs[mask] = data_obs[mask] / mat_nvox_nz[mask]
     #data_unc[mask] = data_unc[mask] / mat_nvox_nz[mask]
     data_gaus = np.zeros(ray_val.shape)
@@ -277,7 +280,7 @@ if __name__ == "__main__":
                 print(f"smoothing: (rho0, err_prior, correlation length) = ({rho0:.1f} g/cm^3, {sig:.3e} g/cm^3, {lc:.3e} m) --- {(time.time() - start_time):.3f}  s ---") 
                 vec_rho0 = rho0*np.ones(nvox)
                 vec_sig  = sig*np.ones(nvox)
-                inversion.get_model_expectation(rho0=vec_rho0)
+                inversion.get_model_post(rho0=vec_rho0)
                 mat_rho_post[i,j,k] = inversion.rho_post
 
                 print(f"rho_post = {mat_rho_post[i,j,k]} , shape={mat_rho_post[i,j,k].shape}")

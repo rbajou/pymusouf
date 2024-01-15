@@ -19,6 +19,7 @@ class Survey:
         self.path = path
         self.runs = {}
         self.telescopes = {}
+        self.dem_file = Union[Path, str]
         self.surface_grid = np.ndarray #shape : (m, n, 3)
 
     def __setitem__(self, name:str, run:RunSurvey): 
@@ -49,17 +50,15 @@ class Survey:
 
         self.surface_center = xy_center
 
-
-DICT_TELNAME_SURVEY = {name : [t.split('/')[-1] for t in  glob.glob(str(SURVEY_DIR / name / 'telescope') + '/*')]  
-                       for name in LIST_AVAIL_SURVEY
-                       }
+DICT_TELNAME_SURVEY = {sur : [t.split('/')[-1] for t in  glob.glob( str(SURVEY_DIR / sur / 'telescope') + '/**' ) ]  
+                       for sur in LIST_AVAIL_SURVEY}
 
 DICT_SURVEY = {sur_name : Survey() for sur_name in LIST_AVAIL_SURVEY}
 
 
 
 for sur_name, ltel_name  in DICT_TELNAME_SURVEY.items() : 
-    if sur_name == 'copahue' : continue
+    
     for tel_name in ltel_name:
         tel = DICT_TEL[tel_name]
         survey_path =  SURVEY_DIR / sur_name
@@ -73,10 +72,17 @@ for sur_name, ltel_name  in DICT_TELNAME_SURVEY.items() :
 souf_survey = DICT_SURVEY['soufriere']
 dem_path = souf_survey.path / "dem"
 filename_grid = "soufriereStructure_2.npy" #res 5m
+souf_survey.dem_file = dem_path / filename_grid
 souf_grid = np.load(dem_path / filename_grid)
 souf_xy_center = np.loadtxt(dem_path / "volcanoCenter.txt").T
 souf_survey.set_surface_grid(grid = souf_grid, xy_center = souf_xy_center)
 
+cop_survey = DICT_SURVEY['copahue']
+dem_path = cop_survey.path / "dem"
+filename_grid = "copahueStructure.npy" #res 1m
+cop_survey.dem_file = dem_path / filename_grid
+cop_grid = np.load(dem_path / filename_grid)
+cop_survey.set_surface_grid(grid = cop_grid)
 
 CURRENT_SURVEY = DICT_SURVEY[CURRENT_SURVEY_NAME]
 

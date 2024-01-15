@@ -138,6 +138,7 @@ class Telescope:
     def __post_init__(self, ): 
         self.configurations = {}
         self.panels = List[Panel]
+        self.rays = None
       
     def __setitem__(self, name:str, configuration:PanelConfig): 
         self.configurations[name] = configuration
@@ -363,6 +364,7 @@ tel_BR.azimuth = 297.0#295.
 tel_BR.zenith = 80.0#16.
 tel_BR.elevation = round(90.0-tel_BR.zenith, 1) #16
 tel_BR.site = "Rocher Fendu - Soufrière"
+tel_BR.color = "red"
 
 chmap32 = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping32x32.json"))
 chmap16 = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping16x16.json"))
@@ -389,6 +391,7 @@ tel_COP.azimuth = 262.0#295
 tel_COP.zenith = 86.0#16
 tel_COP.elevation = round(90.0-tel_COP.zenith,1)#16
 tel_COP.site = "Copahue"
+tel_COP.color = "grey"
 
 chmap32 = ChannelMap(file=str( cop_tel_path / tel_name / "channel_bar_map" / "mapping32x32.json"))
 chmap16 = ChannelMap(file=str( cop_tel_path / tel_name / "channel_bar_map" / "mapping16x16.json"))
@@ -415,6 +418,7 @@ tel_OM.azimuth = 192.0
 tel_OM.zenith = 76.1
 tel_OM.elevation = round(90.-tel_OM.zenith,1)
 tel_OM.site = "Fente du Nord - Soufrière"
+tel_OM.color = "orange"
 
 chmap32 = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping32x32.json"))
 chmap16 = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping16x16.json"))
@@ -441,6 +445,7 @@ tel_SB.azimuth = 40.0#44.9
 tel_SB.zenith = 79.0#75
 tel_SB.elevation = round(90 - tel_SB.zenith ,1)
 tel_SB.site = "Savane-à-mulets - Soufrière"
+tel_SB.color = "blue"
 
 chmap32 = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping32x32.json"))
 chmap16 = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping16x16.json"))
@@ -467,6 +472,7 @@ tel_SNJ.azimuth = 18.0#20.5#20
 tel_SNJ.zenith = 74.9#16
 tel_SNJ.elevation = round(90-tel_SNJ.zenith, 1)
 tel_SNJ.site = "Parking - Soufrière"
+tel_SNJ.color = "yellow"
 
 channelmap = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping.json"))
 front_panel = Panel(matrix = matrixv1_1, ID=9, position=Position(PositionEnum.Front,0), channelmap=channelmap)
@@ -532,7 +538,7 @@ tel_SNJ.panels = Config_4p_16x16.panels
 # tel_SBR[conf_name] = Config_4p_16x16
 
 
-DICT_TEL = { 'SNJ': tel_SNJ, 'BR': tel_BR, 'OM': tel_OM, 'SB': tel_SB } #'SBR': tel_SBR, 'COP : tel_COP
+DICT_TEL = { 'SNJ': tel_SNJ, 'BR': tel_BR, 'OM': tel_OM, 'SB': tel_SB, 'COP' : tel_COP } #'SBR': tel_SBR, 
 
 
 def str2telescope(v):
