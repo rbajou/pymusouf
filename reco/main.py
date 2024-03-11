@@ -17,7 +17,6 @@ from reco import RecoData, RansacData
 from eventrate import EvtRate
 from hitmap import HitMap
 
-
 start_time = time.time()
 print("Start: ", time.strftime("%H:%M:%S", time.localtime()))#start time
 t_start = time.perf_counter()

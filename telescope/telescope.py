@@ -138,6 +138,7 @@ class Telescope:
     def __post_init__(self, ): 
         self.configurations = {}
         self.panels = List[Panel]
+        self.pmts = List[PMT]
         self.rays = None
       
     def __setitem__(self, name:str, configuration:PanelConfig): 
@@ -407,6 +408,7 @@ Config_3p1_32x32 = PanelConfig(name = conf_name,
                                pmts=[front_pmt, middle1_pmt, rear_pmt])
 tel_COP[conf_name] = Config_3p1_32x32
 tel_COP.panels = Config_3p1_32x32.panels
+tel_COP.pmts = Config_3p1_32x32.pmts
 
 #####OM: OrangeMecanique GW Fente du Nord 2017-2019 3 matrices = 1 * v1.1 + 2 * v2.0
 tel_name = 'OM'

@@ -7,7 +7,7 @@ from typing import List, Union
 import glob
 
 #package module(s)
-from config import SURVEY_DIR, LIST_AVAIL_SURVEY, CURRENT_SURVEY_NAME
+from config import MAIN_PATH, SURVEY_DIR, LIST_AVAIL_SURVEY, CURRENT_SURVEY_NAME
 from .run import RunType, RunSurvey
 from telescope import DICT_TEL
 
@@ -76,6 +76,7 @@ souf_survey.dem_file = dem_path / filename_grid
 souf_grid = np.load(dem_path / filename_grid)
 souf_xy_center = np.loadtxt(dem_path / "volcanoCenter.txt").T
 souf_survey.set_surface_grid(grid = souf_grid, xy_center = souf_xy_center)
+
 
 cop_survey = DICT_SURVEY['copahue']
 dem_path = cop_survey.path / "dem"

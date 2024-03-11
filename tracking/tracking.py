@@ -478,7 +478,7 @@ class Tracking:
         self.tel = telescope
         self.data   = data
 
-        self.PMTs = { pm.ID : pm for pm in self.tel.PMTs}
+        self.pmts = { pm.ID : pm for pm in self.tel.pmts}
         self.panels = { p.ID : p for p in self.tel.panels}
 
         self.nevt_tot, self.ngold = 0, 0
@@ -605,8 +605,8 @@ class RansacTracking(Tracking):
         Process tracking data files event-by-event
         '''
         
-        nPM = len(self.tel.PMTs)
-        minPlan = np.min([pm.ID for pm in self.tel.PMTs])
+        nPM = len(self.tel.pmts)
+        minPlan = np.min([pm.ID for pm in self.tel.pmts])
         last_evtID = 0
         barwidths = { i :  float(p.matrix.scintillator.width) for i,p  in self.panels.items() }
 
@@ -624,7 +624,7 @@ class RansacTracking(Tracking):
             #init : 1st impact on PMT
             impm = ImpactPM(line=lines[0])
             #create pmt impact 
-            pmt = self.PMTs[impm.pmID]
+            pmt = self.pmts[impm.pmID]
             channelmap = pmt.channelmap
             #create panel impacts
             impm.fill_panel_impacts(channelmap, nPM, self.zpos, minPlan)
@@ -639,7 +639,7 @@ class RansacTracking(Tracking):
                 # print(f'--->EVT{last_evtID}')
                 
                 impm = ImpactPM(line=line)
-                pmt = self.PMTs[impm.pmID]
+                pmt = self.pmts[impm.pmID]
                 channelmap = pmt.channelmap
                 impm.fill_panel_impacts(channelmap, nPM, self.zpos, minPlan)
                 
@@ -717,8 +717,8 @@ class RansacTracking(Tracking):
         #ransac parameters : 
         lparkeys = ['residual_threshold', 'min_samples', 'max_trials']
 
-        nPM = len(self.tel.PMTs)
-        minPlan = np.min([pm.ID for pm in self.tel.PMTs])
+        nPM = len(self.tel.pmts)
+        minPlan = np.min([pm.ID for pm in self.tel.pmts])
         last_evtID = 0
         barwidths = { i :  float(p.matrix.scintillator.width) for i,p  in self.panels.items() }
         headers= list(self.df_track.keys())
@@ -737,7 +737,7 @@ class RansacTracking(Tracking):
             #init : 1st impact on PMT
             impm = ImpactPM(line=lines[0])
             #create pmt impact 
-            pmt = self.PMTs[impm.pmID]
+            pmt = self.pmts[impm.pmID]
             channelmap = pmt.channelmap
             #create panel impacts
             impm.fill_panel_impacts(channelmap, nPM, self.zpos, minPlan)
@@ -752,7 +752,7 @@ class RansacTracking(Tracking):
             for i, l in enumerate(lines[1:]) :
                 # print(f'--->EVT{last_evtID}')
                 impm = ImpactPM(line=l)
-                pmt = self.PMTs[impm.pmID]
+                pmt = self.pmts[impm.pmID]
                 channelmap = pmt.channelmap
                 impm.fill_panel_impacts(channelmap, nPM, self.zpos, minPlan)
                 if impm.evtID == last_evtID:

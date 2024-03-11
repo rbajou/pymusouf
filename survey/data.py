@@ -1,31 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from abc import abstractmethod
-from typing import List, Dict, Union
 from enum import Enum, auto
-import numpy as np
 import os
 from pathlib import Path
 import inspect
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 script_path = os.path.dirname(os.path.abspath(filename))
-from scipy.signal import find_peaks
-from scipy.optimize import curve_fit
-from dataclasses import dataclass, field
 import gzip
-from skimage.measure import ransac, LineModelND
-from sklearn.linear_model import RANSACRegressor,LinearRegression
-import pandas as pd
-import logging
 import glob
-import requests #url
-from bs4 import BeautifulSoup #fetch data 
-from itertools import combinations
-import io
-#personal modules
-from telescope import  Telescope
-
 
 
 class DataType(Enum):

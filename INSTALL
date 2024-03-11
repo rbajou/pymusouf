@@ -12,5 +12,5 @@ Then, to install the package with its requirements do:
 Later, to exit the virtual environment, simply do:  
     $deactivate  
 
-For each source package modification, rerun: 
+For each source package modification, run again: 
     $python3 -m pip install .  

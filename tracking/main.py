@@ -31,13 +31,14 @@ parser.add_argument('--input_data', '-i', default=[], nargs="*", help='/path/to/
 parser.add_argument('--out_dir', '-o', default='out', help='Path to processing output', type=str) 
 parser.add_argument('--input_type', '-it', default='real',  help="'real' or 'mc'", type=str)
 parser.add_argument('--max_nfiles', '-max', default=1, help='Maximum number of dataset files to process.', type=int)
-parser.add_argument('--residual_threshold', '-rt', default=50, help='RANSAC "distance-to-model" parameter: "residual_threshold" in mm.',type=float)
-parser.add_argument('--min_samples', '-ms', default=2, help='RANSAC size of the initial sample: "min_samples".',type=int)
-parser.add_argument('--max_trials', '-mt', default=100, help='RANSAC number of iterations: "max_trials".',type=int)
-parser.add_argument('--fit_intersect', '-intersect', default=False, help='if true record line model intersection points on panel; else record closest XY points to model',type=str2bool)
+parser.add_argument('--residual_threshold', '-rt', default=50, help="RANSAC 'distance-to-model' parameter in mm",type=float)
+parser.add_argument('--min_samples', '-ms', default=2, help='RANSAC size of the initial sample',type=int)
+parser.add_argument('--max_trials', '-mt', default=100, help='RANSAC number of iterations',type=int)
+parser.add_argument('--fit_intersect', '-intersect', default=False, help='if true record line model intersection points on panel; else record closest XY inlier points to model',type=str2bool)
 parser.add_argument('--info', '-info', default=None, help='Additional info',type=str)
 parser.add_argument('--progress_bar', '-bar', default=False, help='Display progress bar',type=str2bool)
 args=parser.parse_args()
+
 
 survey = CURRENT_SURVEY[args.telescope.name]
 
