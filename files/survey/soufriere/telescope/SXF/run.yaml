@@ -1,0 +1,19 @@
+survey: Soufriere
+
+telescope: SXF
+
+run : 
+  calib : 
+      calib_3dat:
+        rawdata :  
+          - ../data/SXF/calib/rawdata
+        recodata : 
+          - ../data/SXF/calib/reco 
+
+  tomo : 
+      tomo_3dat :
+        rawdata :  
+          - ../data/SXF/tomo/rawdata
+        recodata : 
+          - ../data/SXF/tomo/reco 
+      

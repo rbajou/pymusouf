@@ -1,9 +1,14 @@
 ### Context  
-The repository contains Python packages to reconstruct and analyze muography data recorded at La Soufrière de Guadeloupe, an active volcano located in the French Lesser Antilles. The volcano is monitored by the Volcanological and Seismological Observatory of Guadeloupe (OVSG), under the responsibility of IPGP. 
-The detectors used in this study are scintillator-based hodoscopes named 'muon telescopes' developed in IP2I, Lyon. 
+The repository contains Python packages to reconstruct and analyze muography data recorded during two surveys at :
+- La Soufrière de Guadeloupe, located in the Lesser Antilles. The volcano is monitored by the Volcanological and Seismological Observatory of Guadeloupe (OVSG), under the responsibility of IPGP. 
+- the Copahue volcano, on the border between Argentina and Chile.
+
+The detectors used in this study are scintillator-based hodoscopes named "telescopes" developed in IP2I, Lyon. 
 The data processed by this package were acquired in the framework of the ANR DIAPHANE and ANR MEGAMU projects.  
   
 ### Data processing steps  
+First the ```CURRENT_SURVEY_NAME``` variable needs to be edited in the ```config/config.py``` module, either with ```soufriere``` or ```copahue```. Then, the package needs to be compiled, check ```INSTALL``` file.
+
 ## 1. Tracking:  
 To process raw telescope data and reconstruct particle track event-by-event, the user needs to run ```python3 tracking/main.py``` with the following arguments:    
 INPUTS:  

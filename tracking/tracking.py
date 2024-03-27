@@ -125,20 +125,24 @@ class ImpactPM:
         ch_keys = list(chmap.keys())
         l_panelID = []
         for adc, ch in zip(self._adc, self._channel_no):
-            if ch not in ch_keys: continue
-            if nPM ==2:
-                ####SBR config
-                if ch%8 <= 3 : panID = 2*(self.pmID - minPlan) 
-                elif ch%8 >= 4 : panID = 2*(self.pmID - minPlan)+1  
-                else : raise "Channel issue"
+            if ch not in ch_keys: 
+                continue
+            if nPM == 2:
+                ####SBR & SXF config
+                if ch%8 <= 3 : 
+                    panID = 2*(self.pmID - minPlan) 
+                elif ch%8 >= 4 :
+                    panID = 2*(self.pmID - minPlan)+1  
+                else : 
+                    raise f"Issue with channel {ch}"
             elif nPM == 3 or nPM == 4:
                 panID = self.pmID
-            else: return "Unknown PMT configuration"    
+            else: 
+                return "Unknown PMT configuration"    
             
             if panID not in l_panelID:     
                 l_panelID.append(panID)
                 self.impacts[panID] =  Impact(line=self.line, panelID=panID, zpos=zpos[int(panID)]) 
-            
             hit = Hit(channel_no=ch, bar_no=chmap[ch], adc=adc, panelID=panID)
             if scint_eff is None: 
                 self.impacts[panID].hits.append(hit)
@@ -184,9 +188,8 @@ class Event:
         """
         bar_no = []
         adc = []
-
         for _, imp in self.impacts.items():  # loop on impacts (=impacted panels)
-
+            
             z = imp.panelID
             l_hits= [ hit for hit in imp.hits if type(hit.bar_no) == str and hit.adc != 0]
             l_comb = combinations(l_hits, 2)
@@ -644,22 +647,24 @@ class RansacTracking(Tracking):
                 impm.fill_panel_impacts(channelmap, nPM, self.zpos, minPlan)
                 
                 if impm.evtID == last_evtID:
-                    for pid, imp in impm.impacts.items() : evt.impacts[pid] = imp
-                    if nl == len(lines)-1: pass 
-                    else: continue
+                    for pid, imp in impm.impacts.items() : 
+                        evt.impacts[pid] = imp
+                    if nl == len(lines)-1: 
+                        pass 
+                    else: 
+                        continue
                 #if new evtID, retrieve the last evtID and reconstruct it 
                 #get coordinates 
                 evt.get_xyz(in_mm=True, width=barwidths, zpos=self.zpos)
 
                 iscut, _ = self.filter(evt)
-
-                key = f'{evt.nimpacts}p'
                 if iscut:
                     evt = self.reinit_evt(old_evt=evt, impact_pm=impm)
                     last_evtID = evt.ID
                     if nl != len(lines)-1: self.nevt_tot += 1
                     continue
                 else: 
+                    key = f'{evt.nimpacts}p'
                     self.dict_nsel [key] += 1    
 
                 try:

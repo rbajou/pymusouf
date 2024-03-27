@@ -436,6 +436,7 @@ Config_3p1_32x32 = PanelConfig(name = conf_name,
                                pmts=[front_pmt, middle1_pmt, rear_pmt])
 tel_OM[conf_name] = Config_3p1_32x32
 tel_OM.panels = Config_3p1_32x32.panels
+tel_OM.pmts = Config_3p1_32x32.pmts
 
 #####SB: SacreBleu GW Savane-à-mulets (ouest NJ) 2017-2019 3 matrices = 1 * v1.1 + 2 * v2.0
 tel_name = 'SB'
@@ -463,6 +464,7 @@ Config_3p1_32x32 = PanelConfig(name = conf_name,
                                pmts=[front_pmt, middle1_pmt, rear_pmt])
 tel_SB[conf_name] = Config_3p1_32x32
 tel_SB.panels = Config_3p1_32x32.panels
+tel_SB.pmts = Config_3p1_32x32.pmts
 
 ####SNJ: SuperNainJaune GW Parking 2019
 tel_name = 'SNJ'
@@ -501,46 +503,86 @@ Config_4p_16x16 = PanelConfig(name = conf_name,
                               pmts=[front_pmt, middle1_pmt, middle2_pmt, rear_pmt])
 tel_SNJ[conf_name] = Config_4p_16x16
 tel_SNJ.panels = Config_4p_16x16.panels
+tel_SNJ.pmts = Config_4p_16x16.pmts
 
 ##SBR: SuperBaronRouge GW Rocher Fendu 2021-2022 4 matrices = 4 * v1.1
-# tel_name = 'SBR'
-# tel_SBR = Telescope(name=tel_name)
+tel_name = 'SBR'
+tel_SBR = Telescope(name=tel_name)
 
-# tel_SBR.utm = np.array([643345.81, 1774030.46,1267])
-# tel_SBR.altitude = tel_BR.utm[-1]
-# tel_SBR.azimuth = 297.0 #?
-# tel_SBR.zenith = 80.0 #?
-# tel_SBR.elevation = round(90.0-tel_BR.zenith, 1) #16
-# tel_SBR.site = "Rocher Fendu - Soufrière"
+tel_SBR.utm = np.array([643345.81, 1774030.46,1267])
+tel_SBR.altitude = tel_BR.utm[-1]
+tel_SBR.azimuth = 297.0 #?
+tel_SBR.zenith = 80.0 #?
+tel_SBR.elevation = round(90.0-tel_BR.zenith, 1) #16
+tel_SBR.site = "Rocher Fendu - Soufrière"
+tel_SBR.color = "red"
 
-# channelmap = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping.json"))
+channelmap = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping.json"))
+front_panel = Panel(matrix = matrixv1_1, ID=0, position=Position(PositionEnum.Front,0), channelmap=channelmap)
+middle1_panel = Panel(matrix = matrixv1_1, ID=2, position=Position(PositionEnum.Middle1,600), channelmap=channelmap)
+front_middle1_pmt = PMT(ID=6, panel=[front_panel, middle1_panel], channelmap=channelmap)
 
-# front_panel = Panel(matrix = matrixv1_1, ID=0, position=Position(PositionEnum.Front,0), channelmap=channelmap)
-# middle1_panel = Panel(matrix = matrixv1_1, ID=2, position=Position(PositionEnum.Middle1,600), channelmap=channelmap)
-# front_middle1_pmt = PMT(ID=6, panel=[front_panel, middle1_panel], channelmap=channelmap)
+middle2_panel = Panel(matrix = matrixv1_1, ID=1, position=Position(PositionEnum.Middle2,1200), channelmap=channelmap)
+rear_panel = Panel(matrix = matrixv1_1, ID=3, position=Position(PositionEnum.Rear,1800), channelmap=channelmap)
+middle2_rear_pmt = PMT(ID=7, panel=[middle2_panel, rear_panel], channelmap=channelmap) 
+conf_name = '3p1'
+Config_3p1_16x16 = PanelConfig(name = conf_name, 
+                               panels=[front_panel, middle1_panel, middle2_panel],
+                               pmts=[front_middle1_pmt, middle2_rear_pmt])
+tel_SBR[conf_name] = Config_3p1_16x16
+conf_name = '3p2'
+Config_3p2_16x16 = PanelConfig(name = conf_name,
+                               panels=[middle1_panel, middle2_panel, rear_panel],
+                               pmts=[front_middle1_pmt, middle2_rear_pmt])
+tel_SBR[conf_name] = Config_3p2_16x16
+conf_name = '4p'
+Config_4p_16x16 = PanelConfig(name = conf_name, 
+                              panels=[front_panel, middle1_panel, middle2_panel, rear_panel],
+                              pmts=[front_middle1_pmt, middle2_rear_pmt])
+tel_SBR[conf_name] = Config_4p_16x16
+tel_SBR.panels = Config_4p_16x16.panels
+tel_SBR.pmts = Config_4p_16x16.pmts
 
-# middle2_panel = Panel(matrix = matrixv1_1, ID=1, position=Position(PositionEnum.Middle2,1200), channelmap=channelmap)
-# rear_panel = Panel(matrix = matrixv1_1, ID=3, position=Position(PositionEnum.Rear,1800), channelmap=channelmap)
-# middle2_rear_pmt = PMT(ID=7, panel=[middle2_panel, rear_panel], channelmap=channelmap) 
-# conf_name = '3p1'
+##SXF: GW Faille du 30 Août
+tel_name = 'SXF'
+tel_SXF = Telescope(name=tel_name)
 
-# Config_3p1_16x16 = PanelConfig(name = conf_name, 
-#                                panels=[front_panel, middle1_panel, middle2_panel],
-#                                pmts=[front_pmt, middle1_pmt, middle2_pmt])
-# tel_SBR[conf_name] = Config_3p1_16x16
-# conf_name = '3p2'
-# Config_3p2_16x16 = PanelConfig(name = conf_name,
-#                                panels=[middle1_panel, middle2_panel, rear_panel],
-#                                pmts=[middle1_pmt, middle2_pmt, rear_pmt])
-# tel_SBR[conf_name] = Config_3p2_16x16
-# conf_name = '4p'
-# Config_4p_16x16 = PanelConfig(name = conf_name, 
-#                               panels=[front_panel, middle1_panel, middle2_panel, rear_panel],
-#                               pmts=[front_pmt, middle1_pmt, middle2_pmt, rear_pmt])
-# tel_SBR[conf_name] = Config_4p_16x16
+tel_SXF.utm = np.array([643109,1773943,1275.9]) #?
+tel_SXF.altitude = tel_BR.utm[-1]
+tel_SXF.azimuth = 352.0 #?
+tel_SXF.zenith = 90-27 #?
+tel_SXF.elevation = round(90.0-tel_BR.zenith, 1) #16
+tel_SXF.site = "Faille du 30 Août - Soufrière"
+tel_SXF.color = "purple"
+
+channelmap = ChannelMap(file=str( souf_tel_path / tel_name / "channel_bar_map" / "mapping.json"))
+front_panel = Panel(matrix = matrixv1_1, ID=0, position=Position(PositionEnum.Front,0), channelmap=channelmap)
+middle1_panel = Panel(matrix = matrixv1_1, ID=2, position=Position(PositionEnum.Middle1,600), channelmap=channelmap)
+front_middle1_pmt = PMT(ID=6, panel=[front_panel, middle1_panel], channelmap=channelmap)
+
+middle2_panel = Panel(matrix = matrixv1_1, ID=1, position=Position(PositionEnum.Middle2,1200), channelmap=channelmap)
+rear_panel = Panel(matrix = matrixv1_1, ID=3, position=Position(PositionEnum.Rear,1800), channelmap=channelmap)
+middle2_rear_pmt = PMT(ID=7, panel=[middle2_panel, rear_panel], channelmap=channelmap) 
+conf_name = '3p1'
+Config_3p1_16x16 = PanelConfig(name = conf_name, 
+                               panels=[front_panel, middle1_panel, middle2_panel],
+                               pmts=[front_middle1_pmt, middle2_rear_pmt])
+tel_SXF[conf_name] = Config_3p1_16x16
+conf_name = '3p2'
+Config_3p2_16x16 = PanelConfig(name = conf_name,
+                               panels=[middle1_panel, middle2_panel, rear_panel],
+                               pmts=[front_middle1_pmt, middle2_rear_pmt])
+tel_SXF[conf_name] = Config_3p2_16x16
+conf_name = '4p'
+Config_4p_16x16 = PanelConfig(name = conf_name, 
+                              panels=[front_panel, middle1_panel, middle2_panel, rear_panel],
+                              pmts=[front_middle1_pmt, middle2_rear_pmt])
+tel_SXF[conf_name] = Config_4p_16x16
+tel_SXF.panels = Config_4p_16x16.panels
+tel_SXF.pmts = Config_4p_16x16.pmts
 
 
-DICT_TEL = { 'SNJ': tel_SNJ, 'BR': tel_BR, 'OM': tel_OM, 'SB': tel_SB, 'COP' : tel_COP } #'SBR': tel_SBR, 
+DICT_TEL = { 'SNJ': tel_SNJ, 'BR': tel_BR, 'OM': tel_OM, 'SB': tel_SB, 'COP' : tel_COP, 'SBR': tel_SBR, 'SXF': tel_SXF }
 
 
 def str2telescope(v):
