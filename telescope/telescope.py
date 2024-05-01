@@ -348,8 +348,8 @@ class Telescope:
 
 scint_Fermi = Scintillator(type="Fermilab", length=800, width=50, thickness=7 )
 scint_JINR = Scintillator(type="JINR", length=800, width=25, thickness=7 )
-matrixv1_1 = Matrix(version="1.1",  scintillator=scint_Fermi, nbarsX=16, nbarsY= 16, wls_type="BCF91A",fiber_out="TR644 POM")
-matrixv2_0 = Matrix(version="2.0",  scintillator=scint_JINR, nbarsX=32, nbarsY= 32, wls_type="Y11",fiber_out="TR644 POM")
+matrixv1_1 = Matrix(version="1.1",  scintillator=scint_Fermi, nbarsX=16, nbarsY=16, wls_type="BCF91A",fiber_out="TR644 POM")
+matrixv2_0 = Matrix(version="2.0",  scintillator=scint_JINR, nbarsX=32, nbarsY=32, wls_type="Y11",fiber_out="TR644 POM")
 
 survey_path = SURVEY_DIR
 souf_tel_path = survey_path / "soufriere" / "telescope"

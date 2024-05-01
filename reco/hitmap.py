@@ -48,8 +48,8 @@ class HitMap:
         
     def fill_dxdy(self, dict_filter:dict=None):
 
-        self.h_DXDY  = { name : None for name in self.sconfig}
-        self.df_DXDY = { name : None for name in self.sconfig}
+        self.hDXDY  = { name : None for name in self.sconfig}
+        self.dfDXDY = { name : None for name in self.sconfig}
         
         for pan in self.panels : 
             #raw hit panel maps
@@ -84,13 +84,12 @@ class HitMap:
             ts, tns = dftmp['timestamp_s'].values, dftmp['timestamp_ns'].values
             DX, DY =  dftmp[xposf].values - dftmp[xposr].values, dftmp[yposf].values - dftmp[yposr].values
             dfconf = pd.DataFrame(index=idx, data=np.array([ts, tns, DX, DY]).T, columns=['timestamp_s', 'timestamp_ns', f'DX_{name}', f'DY_{name}'])
-            self.df_DXDY[name] = dfconf
-            self.h_DXDY[name] = np.histogram2d(DX, DY, bins=self.binsDXDY[name], range=self.rangeDXDY[name] )[0]
-       
+            self.dfDXDY[name] = dfconf
+            self.hDXDY[name] = np.histogram2d(DX, DY, bins=self.binsDXDY[name], range=self.rangeDXDY[name] )[0]
 
     def plot_xy_map(self, invert_yaxis:bool=False, transpose:bool=False):
         """Plot hit map for reconstructed primaries and all primaries"""
-        fig, fax = plt.subplots(figsize=(8, 12), nrows=len(self.panels), ncols=1, sharex=True)
+        fig, fax = plt.subplots(figsize=(8, 14), nrows=len(self.panels), ncols=1, sharex=True)
         for i, p in enumerate(self.panels):  
             ax = fax[i]
             ax.set_aspect('equal')#, adjustable='box')
@@ -105,6 +104,8 @@ class HitMap:
             if invert_yaxis: ax.invert_yaxis()
             if i == len(self.panels)-1 : ax.set_xlabel('Y')
             ax.set_ylabel('X')
+            ax.set_xticks(np.linspace(self.rangeXY[key][0][0], self.rangeXY[key][0][1], 5))
+            ax.set_yticks(np.linspace(self.rangeXY[key][1][0], self.rangeXY[key][1][1], 5))
             divider1 = make_axes_locatable(ax)
             cax1 = divider1.append_axes("right", size="5%", pad=0.05)
             cbar=fig.colorbar(im1, cax=cax1, format='%.0e')
@@ -122,13 +123,13 @@ class HitMap:
             flipud (bool, optional): _description_. Defaults to False.
         """
         nconfigs = len(self.sconfig)
-        fig, fax = plt.subplots(figsize=(8, 12), nrows=nconfigs, ncols=1, sharex=True)
+        fig, fax = plt.subplots(figsize=(8, 14), nrows=nconfigs, ncols=1, sharex=True)
         for i, name in enumerate(self.sconfig):
             if nconfigs > 1 : ax = fax[i]
             else: ax=fax
-            ax.set_aspect('equal')#, adjustable='box')
-            ax.set_ylabel('$\\Delta$X [mm]')#, fontsize=16)
-            ax.set_xlabel('$\\Delta$Y [mm]')#, fontsize=16)
+            ax.set_aspect('equal')
+            ax.set_ylabel('$\\Delta$X [mm]')
+            if i == len(self.sconfig)-1 : ax.set_xlabel('$\\Delta$Y [mm]')
             DX_min, DX_max = self.rangeDXDY[name][0]
             DY_min, DY_max = self.rangeDXDY[name][1]
             h = self.hDXDY[name]
@@ -141,6 +142,8 @@ class HitMap:
             #hist, xedges, yedges, im1 = ax1.hist2d( DY[c], DX[c], edgecolor='black', linewidth=0., bins=self.binsDXDY[c], range=self.rangeDXDY[c], weights=None, cmap='viridis', norm=LogNorm(vmin=1, vmax=np.max(self.hDXDY[c]) ) ) #    
             if invert_xaxis:  ax.invert_xaxis()
             if invert_yaxis:  ax.invert_yaxis()
+            ax.set_xticks(np.linspace(DY_min, DY_max, 6))
+            ax.set_yticks(np.linspace(DX_min, DX_max, 6))
             divider1 = make_axes_locatable(ax)
             cax1 = divider1.append_axes("right", size="5%", pad=0.05)
             cbar = fig.colorbar(im, cax=cax1, extend='max')

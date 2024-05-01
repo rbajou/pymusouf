@@ -214,11 +214,8 @@ class Event:
             z_coord = zpos[z] #mm
             x_bar = xyz[0] #bar num
             y_bar = xyz[1]
-            
             #scint. center as pt coords
             arr_xyz_mm[i] =  np.array([x_bar-1/2, y_bar-1/2, 1]) * np.append( np.ones(2)*scint_width,  z_coord  )
-            #arr_xyz_mm[i] = np.multiply(arr_xyz_mm[i], np.array([-1,-1,-1]))
-            #arr_xyz_mm[i] = np.add(arr_xyz_mm[i], np.array([0,0,-900]))
         
         return arr_xyz_mm
         

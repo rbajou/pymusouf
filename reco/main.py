@@ -112,6 +112,7 @@ q_gold = Charge(df=ransac_data.df_inlier[mask_gold], telescope=tel, input_type=i
 fig, axs = plt.subplots(figsize=(16,8), ncols=len(tel.panels), nrows=1, sharey=True)
 kwargs_gold = {'color': 'orange', 'label':'inlier', 'alpha':0.5}
 for i, (ax, panel) in enumerate(zip(axs, tel.panels)):
+    if len(q_gold.dict_ADC_XY[panel.ID]) == 0 : continue 
     q_gold.plot_charge_panel(ax=ax, panel=panel, **kwargs_gold)
     q_gold.fit_charge_distrib(panel=panel)
     q_gold.plot_fit_panel(ax, panel)
@@ -137,6 +138,7 @@ q_outlier = Charge(df=ransac_data.df_outlier, telescope=tel, input_type=input_ty
 kwargs_in = {'color': 'green', 'label':'inlier', 'alpha':0.5}
 kwargs_out = {'color': 'red', 'label':'outlier', 'alpha':0.5}
 df_cal = pd.read_csv(ofile_fit_gold, delimiter="\t", index_col=[0], header=[0, 1], skipinitialspace=True) #read multi cols 
+df_cal.fillna(1, inplace=True)
 dict_fcal = { pan.ID: df_cal.loc[pan.ID]['MPV']['value'] for pan in tel.panels}
 fig, axs = plt.subplots(figsize=(16,8), ncols=len(tel.panels), nrows=1, sharey=True)
 for i, (ax, panel) in enumerate(zip(axs, tel.panels)): 

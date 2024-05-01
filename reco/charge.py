@@ -64,6 +64,10 @@ class Charge:
        
         fscale= 1 
         if q is None : q = self.dict_ADC_XY[panel.ID]
+        try : 
+            assert len(q) > 0
+        except:
+            return
         if is_scaling:   fscale = 1e3 ###needed to fit with Landau function from pylandau
         q = q*fscale
         xmax_fig = np.mean(q) + 5*np.std(q)
@@ -126,9 +130,13 @@ class Charge:
     def plot_charge_panel(self, ax,  panel:Panel, q:np.ndarray=None, nbins:int=100, fcal:float=None, ufcal:float=None, is_scaling:bool=False, do_fit:bool=False, **kwargs):
         
         if q is None : q = self.dict_ADC_XY[panel.ID]
+        try : 
+            assert len(q) > 0
+        except:
+            return
         if fcal is None: fcal=1
         q = q/fcal
-        xmax_fig = np.mean(q) + 5*np.std(q)
+        xmax_fig = np.nanmean(q) + 5*np.nanstd(q)
         ax.set_xlim(0, xmax_fig)
         entries, bins = np.histogram(q,  range=(0,  xmax_fig), bins =  nbins)
         widths = np.diff(bins)
