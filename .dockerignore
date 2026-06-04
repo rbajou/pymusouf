@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.Python
+build
+dist
+.venv
+venv
+*.egg
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Données volumineuses (ne pas inclure dans l'image)
+./data
+./data_link
+./struct_link
+./sample
+./out
+output/
+
+# Autres
+.old
+acceptance
+.pytest_cache
+*.log

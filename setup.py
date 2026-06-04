@@ -17,7 +17,6 @@ REQUIREMENTS = [
     'palettable', # nice color maps
     'pandas', #dataframe
     'psutil', #memory check
-    #'pylandau',  #called in 'utils/functions.py' but works only for python <= v3.7
     'pyjson', #json files
     'pyvista',
     'pyyaml', #yaml files

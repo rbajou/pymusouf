@@ -1,0 +1,48 @@
+.PHONY: setup-local setup-nas docker-build docker-up docker-down docker-shell docker-run docker-logs docker-clean help
+
+COMPOSE ?= docker compose
+
+help:
+	@echo "Docker commands for pymusouf"
+	@echo ""
+	@echo "Setup:"
+	@echo "  make setup-local    Configure local data paths"
+	@echo "  make setup-nas      Configure mounted NAS path"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make docker-build   Build Docker image"
+	@echo "  make docker-up      Start container"
+	@echo "  make docker-down    Stop container"
+	@echo "  make docker-shell   Open container shell"
+	@echo "  make docker-logs    Show logs"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make docker-run CMD='python processing/tracks.py'"
+
+setup-local:
+	@./setup-docker.sh local
+
+setup-nas:
+	@./setup-docker.sh nas
+
+docker-build:
+	$(COMPOSE) build
+
+docker-up:
+	$(COMPOSE) up -d
+
+docker-down:
+	$(COMPOSE) down
+
+docker-shell:
+	@$(COMPOSE) exec pymusouf /bin/bash || $(COMPOSE) exec pymusouf /bin/sh
+
+docker-logs:
+	$(COMPOSE) logs -f pymusouf
+
+docker-run:
+	@$(COMPOSE) exec pymusouf $(CMD)
+
+docker-clean:
+	$(COMPOSE) down -v
+	docker system prune -f

@@ -1,0 +1,18 @@
+services:
+  pymusouf:
+    build: .
+    container_name: pymusouf-dev
+    volumes:
+      - /Users/raphael/data:/data
+      - /Users/raphael/data:/Users/raphael/data
+      - /Users/raphael/structure:/struct
+      - /Users/raphael/structure:/Users/raphael/structure
+      - ./output:/output
+      - .:/pymusouf
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYMUSOUF_DATA_DIR=/Users/raphael/data
+      - PYMUSOUF_STRUCT_DIR=/Users/raphael/structure
+      - PYMUSOUF_SAMPLE_DIR=/pymusouf/sample
+    stdin_open: true
+    tty: true

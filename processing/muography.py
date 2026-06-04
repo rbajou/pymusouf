@@ -272,14 +272,6 @@ def load_all_datasets_from_group(grp, keys:list=[]):
             d[k] = grp[k][:]
     return d
 
-
-def plot_image(ax, array, u, v, cmap=cm.viridis, label=""):
-    from func import set_norm
-    im = ax.pcolormesh(u,v, array, norm=set_norm(array), cmap=cmap, label=label)
-    cax = inset_locator.inset_axes(ax, width="4%",  height="100%", borderpad=-2,loc = 'right')
-    cb = plt.colorbar(im, cax=cax, extend='max')
-    # cb.set_label(label)
-
 def plot_configuration(axs, h5file, tel, run_name, str_image, mask=None):
     from func import set_norm
     configurations=tel.configurations.items()
@@ -305,7 +297,6 @@ def plot_configuration(axs, h5file, tel, run_name, str_image, mask=None):
         m = mask[conf.name].reshape(conf.shape_uv) if mask is not None else np.ones(conf.shape_uv, dtype=bool)
         val_array = val_array.reshape(conf.shape_uv)
         val_array[~m] = np.nan
-        # plot_image(ax, array, u,v, cmap=color_map.get(str_image, "viridis"), label="")
         im = ax.pcolormesh(u,v, val_array, norm=set_norm(val_array), cmap=color_map.get(str_image, "viridis"))
         cax = inset_locator.inset_axes(ax, width="4%",  height="100%", borderpad=-2,loc = 'right')
         cb = plt.colorbar(im, cax=cax, extend='max')

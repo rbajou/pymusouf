@@ -165,8 +165,6 @@ class FluxModel:
         A = lambda e : 1.1 * (lambda_N * np.sqrt(np.cos(theta)+0.001)/h_f)**(4.5/(E_top(e)*cosThetaStar))  #### Emu0 (ground) -> E_top(e) at production ERROR in TANG article ????
         r_c = 1e-4### ratio of the prompt muons to pions
         P = lambda e : 1/(1+E_top(e)*cosThetaStar/Epi) + B/(1+E_top(e)*cosThetaStar/Ek) + r_c
-        
-
         #####
         # 3 regimes : 
         #1) Eμ0 > (100/cosθ⋆) GeV (the standard Gaisser formula),
@@ -186,7 +184,6 @@ class FluxModel:
         diffFluxAtSeaLevel = A(energy) * 0.14 * energy**(-gamma) * P(energy)
         #diffFluxAtSeaLevel = self.gaisser(energy, theta) 
         return diffFluxAtSeaLevel
-
 
     def shukla(self, energy, theta, E0, Ec, I0, n, eps):
         '''
@@ -226,7 +223,6 @@ class FluxModel:
         if not self.is_corsika:
             raise ValueError("CORSIKA flux requested but no CORSIKA grid was provided at initialization.")
         return self.DF_corsika(energy, theta)
-    
     
     def get_differential_flux(self, energy:float, theta:float, model:str="guan", sys_unc_df=None, altitude_correction:bool=False ):
         """
@@ -338,7 +334,6 @@ if __name__=="__main__":
     opacity = np.linspace(1, 3000, 600)#hg/cm^2 
 
     material = Rock
-    
 
     sp = StoppingPower(I=material.I)
     mu, me = sp.par['mu']*1e-3, sp.par['me']*1e-3 #GeV    
@@ -374,7 +369,6 @@ if __name__=="__main__":
     else: 
         fm = FluxModel(altitude=0.)
         flux = fm.compute_transmitted_flux(emin=emin, theta=theta, model=model)
-        print(flux, flux.shape)
         if np.count_nonzero(flux) > 0:
             np.savez(fout_flux_npy, flux=flux, emin=emin, model=model, theta=theta, opacity=opacity, )
             print(f"Saved {fout_flux_npy}")
@@ -407,17 +401,14 @@ if __name__=="__main__":
     flux_tel = interpolate.griddata(points, values, xi=xi, method='linear').reshape(nu, nv) # 1 / [cm^2.sr.s]
     
     fig, ax=plt.subplots()
-    im=ax.pcolormesh(u, v, flux_tel, norm=LogNorm(np.nanmin(flux_tel),np.nanmax(flux_tel)))
+    im=ax.pcolormesh(u, v, flux_tel, cmap="RdBu",norm=LogNorm(np.nanmin(flux_tel),np.nanmax(flux_tel)))
     fig.colorbar(im)
     fout_png= f"flux_{tel.name}_{conf.name}.png"
     fig.savefig(fout_png)
     print(f"Saved {fout_png}")
 
-    
-
     ndays = 30
     dt = ndays*86400 #s 
-    print(flux_tel)
     count = flux_tel * acceptance * dt
     nrows, ncols=1, 3
     fig, axs = plt.subplots(figsize=( 8*ncols, 7*nrows), ncols=ncols, nrows=nrows)

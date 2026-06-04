@@ -110,7 +110,6 @@ if __name__=="__main__":
     file_ray_length =  dir_voxel / f"ray_length_{tel.name}_{conf.name}_vox4m.npy"
     raylength = np.load(file_ray_length).reshape(conf.shape_uv)
     
-   
     delta_z = conf.length_z*1e-1 #mm > cm
     theta_tel = tel.zenith_matrix[conf.name]
 
@@ -125,9 +124,9 @@ if __name__=="__main__":
     flux_tel = interpolate.griddata(points, values, xi=xi, method='linear').reshape(nu, nv) # 1 / [cm^2.sr.s]
     flux_tel[~mask] = np.nan
     fig, ax = plt.subplots()
-    im = ax.pcolormesh(u, v, flux_tel, norm=LogNorm(np.nanmin(flux_tel),np.nanmax(flux_tel)))
+    im = ax.pcolormesh(u, v, flux_tel, cmap="RdBu", norm=LogNorm(np.nanmin(flux_tel),np.nanmax(flux_tel)))
     cb = fig.colorbar(im)
-    cb.set_label("Integral Flux (cm$^2$ sr s)$^{-1}$")
+    cb.set_label("Integral Flux [cm$^2$ sr s]$^{-1}$")
     fout_png= f"{fluxop_file.stem}_{tel.name}_{conf.name}.png"
     fig.savefig(fout_png)
     print(f"Saved {fout_png}")
