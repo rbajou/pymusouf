@@ -1,178 +1,81 @@
-# Path settings
-- Default portable paths are defined in [config/config.yaml](config/config.yaml).
-- Local machine overrides can be added in a non-versioned file created from [config/config.local.yaml.example](config/config.local.yaml.example).
-- The default survey is controlled from the configuration file; there is no need to edit [survey/survey.py](survey/survey.py) manually anymore.
+# pymusouf Setup
 
-# Installation Guide for the Tomomu Muography Processing Package
+This project supports two setup modes:
 
-This package requires **Python 3.10 or higher**.
+1. Docker (recommended)
+2. Python virtual environment (classic local setup)
 
----
+## Path configuration
 
-## 1. Create a Virtual Environment
+- Default portable paths: [config/config.yaml](config/config.yaml)
+- Local override template: [config/config.local.yaml.example](config/config.local.yaml.example)
+- Runtime overrides via env vars: `PYMUSOUF_DATA_DIR`, `PYMUSOUF_STRUCT_DIR`, `PYMUSOUF_SAMPLE_DIR`
 
-It is strongly recommended to install and run the package inside a Python virtual environment to avoid dependency conflicts.
+## Option 1 (preferred): Docker
 
-### Linux / macOS
+Use this option for a reproducible environment with minimal local Python setup.
 
-In your working directory, create a virtual environment:
+From the project root:
+
+```bash
+./setup-docker.sh local
+docker compose build
+docker compose up -d
+docker compose exec pymusouf python processing/tracks.py
+```
+
+If you need an interactive shell:
+
+```bash
+docker compose exec pymusouf /bin/bash
+```
+
+If `bash` is unavailable in your image, use:
+
+```bash
+docker compose exec pymusouf /bin/sh
+```
+
+More details: [docs/docker/README.md](docs/docker/README.md)
+
+## Option 2: Python virtual environment
+
+Use this option if you prefer a local non-Docker workflow.
+
+Linux/macOS:
 
 ```bash
 python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+python processing/tracks.py
 ```
 
-> **Note:** `.venv` is a generic name for the hidden directory where the virtual environment will be created.
-
-### Windows (PowerShell)
+Windows (PowerShell):
 
 ```powershell
 python -m venv .venv
-```
-
----
-
-## 2. Activate the Virtual Environment
-
-### Linux / macOS
-
-```bash
-source .venv/bin/activate
-```
-
-Once activated, your shell prompt should show the environment name, e.g. `(venv)`.
-
-### Windows (PowerShell)
-
-```powershell
 .venv\Scripts\Activate.ps1
+python -m pip install -e .
+python processing/tracks.py
 ```
 
-> If you see an execution policy error, run PowerShell as administrator and enable script execution temporarily:
->
-> ```powershell
-> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-> ```
+Notes:
 
----
+- `-e` (editable mode) is recommended for development.
+- Deactivate when finished: `deactivate`
 
-## 3. Install the Package and Its Dependencies
+## Quick verification
 
-Install the package from the repository root:
-
-```bash
-python -m pip install .
-```
-
-> **Tip:**
-> If you are actively modifying the source code, use editable mode instead:
->
-> ```bash
-> python -m pip install -e .
-> ```
----
-
-## 4. Deactivate the Virtual Environment
-
-When you are done working, deactivate the environment with:
-
-```bash
-deactivate
-```
-
----
-
-## 5. (Optional) Install from a Requirements File
-
-If a `requirements.txt` file is provided, you can install all dependencies at once:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
----
-
-## 6. Verify the Installation
-
-To check that the package is correctly installed, try importing the main modules:
+Run this from the project root in either setup mode:
 
 ```bash
 python - <<'PY'
 import config
 import telescope
-import survey
 print(config.DEFAULT_SURVEY)
-print(sorted(telescope.DICT_TEL.keys()))
-print(survey.CURRENT_SURVEY.name)
+print(sorted(telescope.DICT_TEL.keys())[:3])
 PY
 ```
 
-If no error appears, the installation was successful.
----
-
-## 7. Troubleshooting
-
-Here are some common installation issues and how to fix them:
-
-### ❌ `python: command not found` or `python3: command not found`
-
-Python is not installed or not in your system path.
-→ Install Python 3.10 or higher from [https://www.python.org/downloads/](https://www.python.org/downloads/)
-→ On Linux: `sudo apt install python3 python3-venv python3-pip`
-
----
-
-### ❌ `No module named venv`
-
-Your Python installation is missing the `venv` module.
-→ On Ubuntu/Debian: `sudo apt install python3-venv`
-
----
-
-### ❌ `pip: command not found`
-
-`pip` is not installed.
-→ Install it with `python -m ensurepip --upgrade`
-
----
-
-### ❌ Permission denied / installation fails globally
-
-You might be trying to install outside a virtual environment.
-→ Always activate your virtual environment before running `pip install`.
-→ Check that your prompt shows `(.venv)`.
-
----
-
-### ❌ `ImportError: No module named pytomomu`
-
-The package is not properly installed or the environment is not active.
-→ Reactivate your environment (`source .venv/bin/activate` or `.venv\Scripts\Activate.ps1`)
-→ Reinstall with `python -m pip install /path/to/pytomomu`
-
----
-
-### ❌ PowerShell execution policy error on Windows
-
-If activation fails with a message like *“running scripts is disabled on this system”*, temporarily enable script execution:
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-```
-
----
-
-### ❌ Mac/Linux library errors (e.g. `libstdc++` not found)
-
-These usually occur when system libraries are missing.
-→ Update your system packages or reinstall Python using a package manager like `brew` or `apt`.
-
----
-
-## 8. Demo mode and local data
-
-By default, the package can use the lightweight inputs stored under [sample](sample).
-For full production processing, point the configuration to your local heavy data folders using either:
-- [config/config.local.yaml.example](config/config.local.yaml.example) copied to a local override file, or
-- the environment variables PYMUSOUF_DATA_DIR, PYMUSOUF_STRUCT_DIR, and PYMUSOUF_SAMPLE_DIR.
-
-If problems persist, verify your Python version, virtual environment setup, and local path configuration.
+If this runs without errors, the setup is ready.

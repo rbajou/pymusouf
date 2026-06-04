@@ -50,7 +50,6 @@ if __name__ == "__main__":
     df = pd.read_csv(file_track)
     df.set_index("event_id", inplace=True)
     
-    # '''
     grp_evt_id = df.groupby('event_id')
     t = grp_evt_id['timestamp'].first().to_numpy()
     er = EventRate(time=t, t0=0)
@@ -104,11 +103,6 @@ if __name__ == "__main__":
                     bbox= props,
                     ha="left",va="bottom",**{"fontweight":"bold"})  
             l_h2d.append((h, binx, biny))
-
-    # fout = cmn.run.dirs["pkl"] / "images_brut.pkl"
-    # with open(fout, 'wb') as f:
-    #     pickle.dump(dict_out, f)
-    # print(f"Save {fout}")
 
     for i, ax in enumerate(axs.ravel()):
         h, bx, by = l_h2d[i]

@@ -5,12 +5,30 @@ The repository contains Python packages to reconstruct and analyze muography dat
 
 The detectors used in this study are scintillator-based hodoscopes developed at IP2I Lyon.
 
+### Setup
+Two setup modes are supported:
+
+1. Docker (recommended)
+2. Python virtual environment
+
+Quick start (Docker-first):
+
+```bash
+./setup-docker.sh local
+docker compose build
+docker compose up -d
+docker compose exec pymusouf python processing/tracks.py
+```
+
+For complete setup instructions (Docker and virtualenv), see [INSTALL](INSTALL).
+
+For Docker details and troubleshooting, see [docs/docker/README.md](docs/docker/README.md).
+
 ### Repository layout
 - package configuration in [config/config.yaml](config/config.yaml)
 - telescope catalogue in [telescope/telescopes.yaml](telescope/telescopes.yaml)
 - internal JSON channel-to-bar mappings in [telescope](telescope)
 - lightweight demonstration data files in [sample](sample)
-- optional heavy local data under [data_link](data_link) and [struct_link](struct_link)
 
 ### Reconstruction
 See [processing/README.md](processing/README.md).
