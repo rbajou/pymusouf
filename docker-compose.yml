@@ -1,6 +1,10 @@
 services:
   pymusouf:
+<<<<<<< HEAD
     image: ${PYMUSOUF_IMAGE:-ghcr.io/rbajou/pymusouf:latest}
+=======
+    image: ghcr.io/rbajou/pymusouf:latest
+>>>>>>> 0c359d3 (- Update `flux.py` for computing transmitted flux in telescope)
     build: .
     container_name: pymusouf-dev
     volumes:
