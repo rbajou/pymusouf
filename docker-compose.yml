@@ -1,5 +1,6 @@
 services:
   pymusouf:
+    image: ${PYMUSOUF_IMAGE:-ghcr.io/rbajou/pymusouf:latest}
     build: .
     container_name: pymusouf-dev
     volumes:

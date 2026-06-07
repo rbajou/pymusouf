@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from scipy.integrate import quad, solve_ivp
+import warnings
+from scipy.integrate import quad, solve_ivp, IntegrationWarning
 
 #https://pdg.lbl.gov/2021/AtomicNuclearProperties/adndt.pdf
 
@@ -215,12 +216,46 @@ class StoppingPower:
         elif E <= 35*mu : zeta = 0
         else: zeta = zeta_num/zeta_den
         rho_max = (1-6*mu**2/(E*Eprim))*np.sqrt( 1 - eps_min/eps ) #ok
-        #print(f"rho_max={rho_max}")
+        # Guard numerical edges of the kinematic domain.
+        if (not np.isfinite(rho_max)) or (rho_max <= 0):
+            return 0.0
+        rho_max = min(rho_max, 1.0 - 1e-12)
+
         tmin = np.log((4*me/eps + 12*mu**2/(E*Eprim) *(1- eps_min/eps) )/(1+ (1-6*mu**2/(E*Eprim)) * np.sqrt(1-4*me/eps))  )
         factor_term = 4/(3*np.pi) * Z*(Z+zeta) *(alpha*re)**2 * (1-nu)/eps
         ###G(Z,E,nu,rho)
-        integral_term =  quad(self.integrand_cs_pair_nuc, 0, rho_max, args=(nu, E, Z))[0]
-#        integral_term =  quad(self.integrand_cs_pair_nuc_bis, tmin, 0, args=(nu, E, Z))[0]
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always", IntegrationWarning)
+            integral_term = quad(
+                self.integrand_cs_pair_nuc,
+                0,
+                rho_max,
+                args=(nu, E, Z),
+                limit=200,
+                epsrel=1e-5,
+                epsabs=1e-10,
+            )[0]
+
+        has_integration_warning = any(issubclass(wi.category, IntegrationWarning) for wi in w)
+
+        # Fallback: use the transformed variable integral when the direct
+        # integration struggles near boundaries.
+        if has_integration_warning or (not np.isfinite(integral_term)) or (integral_term < 0):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", IntegrationWarning)
+                integral_term = quad(
+                    self.integrand_cs_pair_nuc_bis,
+                    tmin,
+                    0,
+                    args=(nu, E, Z),
+                    limit=300,
+                    epsrel=1e-5,
+                    epsabs=1e-10,
+                )[0]
+
+        if (not np.isfinite(integral_term)) or (integral_term < 0):
+            integral_term = 0.0
+
         cs = factor_term * integral_term
         return cs        
               

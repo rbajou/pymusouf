@@ -354,7 +354,7 @@ if __name__ == "__main__":
     print_file_datetime(h5file_raylength)
     with h5py.File(h5file_raylength, "r") as file_raylength: 
         # for i, tel in tqdm(enumerate(dtel.values()), total=len(dtel), desc="Telescopes"):
-        h5file_muo = dirs["data"] / tel.name / f"muography.h5"
+        h5file_muo = dirs["data"] / survey.name/ tel.name / f"muography.h5"
         print_file_datetime(h5file_muo)
         with h5py.File(h5file_muo, "w") as file_muo:
             process_telescope(
