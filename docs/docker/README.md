@@ -15,8 +15,16 @@ From the project root:
 
 ```bash
 ./setup-docker.sh local
-docker compose build
-docker compose up -d
+docker compose pull
+docker compose up -d --no-build
+```
+
+This uses the pre-built image from GHCR when available.
+
+If you are developing locally and want to rebuild the image from source, use:
+
+```bash
+docker compose up -d --build
 ```
 
 Run a script:
@@ -47,6 +55,29 @@ setup-docker.sh supports two modes:
 The script generates docker-compose.yml with volumes and environment variables adapted to the selected mode.
 
 Important: generated absolute paths in docker-compose.yml are machine-specific. Re-run setup-docker.sh on each machine instead of copying docker-compose.yml as-is.
+
+## Pre-built image on GHCR
+
+The project publishes a pre-built image automatically on GitHub Container Registry.
+
+Default image name:
+
+```bash
+ghcr.io/rbajou/pymusouf:latest
+```
+
+To fetch it manually:
+
+```bash
+docker compose pull
+docker compose up -d --no-build
+```
+
+To force a local rebuild instead:
+
+```bash
+docker compose up -d --build
+```
 
 ## Clickable paths in VS Code
 
