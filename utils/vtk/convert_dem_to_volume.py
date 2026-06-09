@@ -6,7 +6,9 @@ from utils.tools import print_file_datetime
 import vtk
 from tqdm import tqdm
 #package module(s)    
-dir_dem = Path("/Users/raphael/pymusouf/struct_link/soufriere/dem")
+from config import STRUCT_DIR
+
+dir_dem = STRUCT_DIR / "soufriere" / "dem"
 # file = dir_dem / "soufriere_dome_surface_5m.npy"
 file = dir_dem / "topo.npy"
 

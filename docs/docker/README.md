@@ -15,34 +15,31 @@ From the project root:
 
 ```bash
 ./setup-docker.sh local
-docker compose pull
-docker compose up -d --no-build
+docker compose build
+docker compose up -d
+docker compose exec pymusouf bash
+# inside the container
+py processing/tracks.py  # `py` is an alias to `python` in this Docker image
 ```
 
-This uses the pre-built image from GHCR when available.
-
-If you are developing locally and want to rebuild the image from source, use:
+To quit the interactive shell session cleanly:
 
 ```bash
-docker compose up -d --build
+exit  # or press Ctrl+D
 ```
 
-Run a script:
+This exits the shell only; the container keeps running.
+
+To stop the container cleanly from the project root:
 
 ```bash
-docker compose exec pymusouf python processing/tracks.py
+docker compose down
 ```
 
-Open an interactive shell in the container:
+As a non-interactive alternative, you can run one command directly:
 
 ```bash
-docker compose exec pymusouf /bin/bash
-```
-
-If bash is unavailable in the image, use:
-
-```bash
-docker compose exec pymusouf /bin/sh
+docker compose exec pymusouf py processing/tracks.py  # `py` alias in the image (same as `python`)
 ```
 
 ## Data configuration
@@ -55,29 +52,6 @@ setup-docker.sh supports two modes:
 The script generates docker-compose.yml with volumes and environment variables adapted to the selected mode.
 
 Important: generated absolute paths in docker-compose.yml are machine-specific. Re-run setup-docker.sh on each machine instead of copying docker-compose.yml as-is.
-
-## Pre-built image on GHCR
-
-The project publishes a pre-built image automatically on GitHub Container Registry.
-
-Default image name:
-
-```bash
-ghcr.io/rbajou/pymusouf:latest
-```
-
-To fetch it manually:
-
-```bash
-docker compose pull
-docker compose up -d --no-build
-```
-
-To force a local rebuild instead:
-
-```bash
-docker compose up -d --build
-```
 
 ## Clickable paths in VS Code
 
@@ -101,8 +75,9 @@ docker compose logs -f pymusouf
 # Stop cleanly
 docker compose down
 
-# Full rebuild (if Dockerfile or dependencies changed)
-docker compose up -d --build
+# Rebuild when Dockerfile or dependencies changed
+docker compose build
+docker compose up -d
 ```
 
 ## Is Makefile.docker required?

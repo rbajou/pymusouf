@@ -17,6 +17,7 @@ from pathlib import Path
 from tqdm import tqdm
 import vtk
 # package module(s)
+from config import STRUCT_DIR
 from utils.tools import print_file_datetime
 from survey import CURRENT_SURVEY
 
@@ -54,7 +55,7 @@ def peak_point(ugrid):
 
     return peak
 
-dir_survey = Path("/Users/raphael/structure/soufriere")
+dir_survey = STRUCT_DIR / "soufriere"
 dir_dem = dir_survey / "dem"
 dir_voxel = dir_survey / "voxel"
 dir_model = dir_survey / "model"

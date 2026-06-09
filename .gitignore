@@ -35,6 +35,7 @@ sample/*/*/*/npy
 sample/*/*/*/png
 sample/*/*/*/pkl
 sample/*/*/*/reco
+.env
 
 
 

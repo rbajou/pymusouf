@@ -36,8 +36,8 @@ def get_pre_parser(saved_args={}):
 
 def set_common_args(parser, saved_args = {}): #simu:bool
     parser.add_argument('--survey', '-s', default=saved_args.get("survey", "soufriere"), help="Survey object. See 'survey/survey.yaml'", type=str)
-    parser.add_argument('--telescope', '-t', default=saved_args.get("telescope", "SXF"), help="Telescope configuration. See 'survey/survey.yaml'", type=str)
-    parser.add_argument('--run', '-r', default=saved_args.get("run", "tomo_3dat"), help="Run label", type=str)
+    parser.add_argument('--telescope', '-t', default=saved_args.get("telescope", "SNJ"), help="Telescope configuration. See 'survey/survey.yaml'", type=str)
+    parser.add_argument('--run', '-r', default=saved_args.get("run", "tomo"), help="Run label", type=str)
  
 def set_common_parser():
     saved_args = load_args_cache()

@@ -5,6 +5,8 @@ import vtk
 from vtk.util import numpy_support
 from tqdm import tqdm
 
+from config import STRUCT_DIR
+
 
 
 def bilinear_z(x, y, X0, Y0, dx, dy, Z):
@@ -78,7 +80,7 @@ def refine_voxel(x, y, z, vs, topo, tol_z, vz_min, voxels):
 # ----------------------------
 # Paramètres
 # ----------------------------
-dir_dem = Path("/Users/raphael/pymusouf/struct_link/soufriere/dem")
+dir_dem = STRUCT_DIR / "soufriere" / "dem"
 input_vts = dir_dem / "topo_roi.vts"
 vs = int(sys.argv[1]) if len(sys.argv) > 1 else 64  # in m
 print(f"Voxel size : {vs} m")

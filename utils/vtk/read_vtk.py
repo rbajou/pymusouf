@@ -5,10 +5,11 @@ import numpy as np
 from pathlib import Path
 import vtk
 #package module(s)    
+from config import STRUCT_DIR
 from utils.tools import print_file_datetime
 
-dir_dem = Path("/Users/raphael/structure/soufriere/dem")
-dir_model = Path("/Users/raphael/structure/soufriere/models")
+dir_dem = STRUCT_DIR / "soufriere" / "dem"
+dir_model = STRUCT_DIR / "soufriere" / "models"
 # file = dir_dem / "topo_roi.vts"
 # file = dir_dem / "topo_voi_vox8m.vtu"
 file = dir_model / "ElecCond_CentralCube.vtk"

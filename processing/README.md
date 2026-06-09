@@ -23,11 +23,12 @@ This is the simplest case.
    - Open [survey/survey.yaml](../survey/survey.yaml) and confirm that the run label you want to use exists for this telescope.
 
 2. **Point the package to your local data root**
-   - Either edit [config/config.yaml](../config/config.yaml),
+   - In a local Python/venv workflow, either edit [config/config.yaml](../config/config.yaml),
    - or better, copy [config/config.local.yaml.example](../config/config.local.yaml.example) to a local override file and set the `paths.data` value to the parent folder containing your telescope data.
+   - In a Docker workflow, prefer [setup-docker.sh](../setup-docker.sh): it generates [docker-compose.yml](../docker-compose.yml) and sets `PYMUSOUF_DATA_DIR` and `PYMUSOUF_STRUCT_DIR` automatically, so you usually do not need to edit the config file for paths.
 
    Example logic:
-   - if your files are stored under a folder like `.../SB/tomo/raw`, then `paths.data` should point to the parent directory above `SB`.
+   - if your files are stored under a folder like `.../SB/tomo/raw`, then `paths.data` or `PYMUSOUF_DATA_DIR` should point to the parent directory above `SB`.
 
 3. **Disable sample mode for real data**
    - Set `runtime.use_sample_data: false` in the configuration.

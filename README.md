@@ -15,12 +15,12 @@ Quick start (Docker-first):
 
 ```bash
 ./setup-docker.sh local
-docker compose pull
-docker compose up -d --no-build
-docker compose exec pymusouf python processing/tracks.py
+docker compose build                    # Build the Docker image from Dockerfile
+docker compose up -d                    # Start the container in background
+docker compose exec pymusouf bash  # Open an interactive shell in the running container
+# inside the container
+py processing/tracks.py  # `py` is an alias to `python` in this Docker image
 ```
-
-This uses the pre-built image from GitHub Container Registry when available.
 
 For complete setup instructions (Docker and virtualenv), see [INSTALL](INSTALL).
 

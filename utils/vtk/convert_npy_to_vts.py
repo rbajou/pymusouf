@@ -5,11 +5,12 @@ import numpy as np
 from pathlib import Path
 import vtk
 #package module(s)
+from config import STRUCT_DIR
 from utils.tools import print_file_datetime
 
 if __name__ == "__main__":
 
-    dir_path = Path("/Users/raphael/structure/soufriere/dem")
+    dir_path = STRUCT_DIR / "soufriere" / "dem"
     file = dir_path / "soufriere_dome_surface_1m.npy"
     basename = file.stem
     print_file_datetime(file)

@@ -1,19 +1,18 @@
 services:
   pymusouf:
-    image: ${PYMUSOUF_IMAGE:-ghcr.io/rbajou/pymusouf:latest}
     build: .
     container_name: pymusouf-dev
     volumes:
       - /Users/raphael/data:/data
       - /Users/raphael/data:/Users/raphael/data
-      - /Users/raphael/structure:/struct
-      - /Users/raphael/structure:/Users/raphael/structure
+      - /Users/raphael/structure_light:/struct
+      - /Users/raphael/structure_light:/Users/raphael/structure_light
       - ./output:/output
       - .:/pymusouf
     environment:
       - PYTHONUNBUFFERED=1
       - PYMUSOUF_DATA_DIR=/Users/raphael/data
-      - PYMUSOUF_STRUCT_DIR=/Users/raphael/structure
+      - PYMUSOUF_STRUCT_DIR=/Users/raphael/structure_light
       - PYMUSOUF_SAMPLE_DIR=/pymusouf/sample
     stdin_open: true
     tty: true

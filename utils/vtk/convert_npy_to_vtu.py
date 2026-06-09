@@ -5,11 +5,12 @@ import numpy as np
 from pathlib import Path
 import vtk
 #package module(s)
+from config import STRUCT_DIR
 from utils.tools import print_file_datetime
 
 if __name__ == "__main__":
 
-    dir_path = Path("/Users/raphael/structure/soufriere/voxel")
+    dir_path = STRUCT_DIR / "soufriere" / "voxel"
     input_file = dir_path / "vox_matrix_res64m.npy"
     output_file = dir_path / f"vox_matrix_res64m.vtu"
     print_file_datetime(input_file)

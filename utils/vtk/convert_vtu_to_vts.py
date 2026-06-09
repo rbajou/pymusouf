@@ -17,12 +17,13 @@ from pathlib import Path
 from tqdm import tqdm
 import sys
 import vtk
+from config import STRUCT_DIR
 
 # package module(s)
 from utils.tools import print_file_datetime
 
 
-dir_survey = Path("/Users/raphael/structure/soufriere")
+dir_survey = STRUCT_DIR / "soufriere"
 dir_dem = dir_survey / "dem"
 dir_voxel = dir_survey / "voxel"
 dir_model = dir_survey / "model"

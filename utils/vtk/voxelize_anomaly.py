@@ -7,9 +7,10 @@ from tqdm import tqdm
 import vtk
 from vtk.util import numpy_support
 #package module(s)    
+from config import STRUCT_DIR
 from utils.tools import print_file_datetime
 
-dir_survey = Path("/Users/raphael/structure/soufriere")
+dir_survey = STRUCT_DIR / "soufriere"
 dir_dem = dir_survey/"dem"
 dir_voxel =dir_survey /"voxel"
 # file = dir_voxel / "topo_voi_vox8m.vtu"

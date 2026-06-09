@@ -1,0 +1,12 @@
+{
+  "name": "pymusouf",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "pymusouf",
+  "workspaceFolder": "/pymusouf",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "ms-python.pylance"]
+    }
+  },
+  "remoteUser": "root"
+}

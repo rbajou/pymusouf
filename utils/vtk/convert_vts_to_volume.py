@@ -3,11 +3,12 @@ from pathlib import Path
 import vtk
 from vtk.util import numpy_support
 
+from config import STRUCT_DIR
 
 # ----------------------------
 # Paramètres
 # ----------------------------
-dir_dem = Path("/Users/raphael/pymusouf/struct_link/soufriere/dem")
+dir_dem = STRUCT_DIR / "soufriere" / "dem"
 input_vts = dir_dem / "topo_roi.vts"
 output_vts =  dir_dem / "topo_voi.vts"
 

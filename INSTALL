@@ -19,29 +19,31 @@ From the project root:
 
 ```bash
 ./setup-docker.sh local
-docker compose pull
-docker compose up -d --no-build
-docker compose exec pymusouf python processing/tracks.py
+docker compose build                    # Build the Docker image from Dockerfile
+docker compose up -d                    # Start the container in background
+docker compose exec pymusouf bash  # Open an interactive shell in the running container
+# inside the container
+py processing/tracks.py  # `py` is an alias to `python` in this Docker image
 ```
 
-This pulls the pre-built image from GitHub Container Registry when available.
-
-If you want to rebuild the image locally from source instead, use:
+To quit the interactive shell session cleanly:
 
 ```bash
-docker compose up -d --build
+exit  # or press Ctrl+D
 ```
 
-If you need an interactive shell:
+This exits the shell only; the container keeps running.
+
+To stop the container cleanly from the project root:
 
 ```bash
-docker compose exec pymusouf /bin/bash
+docker compose down
 ```
 
-If `bash` is unavailable in your image, use:
+As a non-interactive alternative, you can run one command directly:
 
 ```bash
-docker compose exec pymusouf /bin/sh
+docker compose exec pymusouf py processing/tracks.py  # `py` alias in the image (same as `python`)
 ```
 
 More details: [docs/docker/README.md](docs/docker/README.md)
